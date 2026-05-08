@@ -1,12 +1,14 @@
 import Database from "better-sqlite3";
+
 const db = new Database("recipes.db");
 
 db.pragma("foreign_keys = ON");
+
 db.prepare(
   `
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
-        external_id TEXT UNIQUE, 
+        external_id TEXT UNIQUE,
         email TEXT UNIQUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -88,7 +90,7 @@ db.prepare(
   `CREATE TABLE IF NOT EXISTS recipe_tags (
     recipe_id TEXT NOT NULL,
     tag_id INTEGER NOT NULL,
-    PRIMARY KEY(recipe_id, tag_id)
+    PRIMARY KEY(recipe_id, tag_id),
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
     FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE
     )

@@ -14,24 +14,58 @@ if (!apiKey) {
 const genAI = new GoogleGenAI({ apiKey });
 
 // const model = "gemini-3-flash-preview";
-
 const model = "gemini-3.1-flash-lite-preview";
 
-export function getModelName() {
+type AiRecipe = z.infer<typeof aiRecipeSchema>;
+
+export type ParsedAiRecipe = AiRecipe & {
+  ai_model: string;
+  source_prompt: string;
+  relation?: "reply" | "fork";
+  versionId?: number | bigint;
+};
+
+type AiValidationErrorType =
+  | "empty_response"
+  | "invalid_json"
+  | "schema_validation_failed"
+  | "empty_recipe";
+
+type AiValidationIssue = {
+  path: z.ZodIssue["path"];
+  message: string;
+  code: z.ZodIssue["code"];
+};
+
+export type AiValidationMeta = {
+  type: AiValidationErrorType;
+  source_prompt: string;
+  ai_model?: string;
+  rawResponse?: string;
+  issues?: AiValidationIssue[];
+};
+
+type GenerateResponseResult = Awaited<ReturnType<typeof genAI.models.generateContent>>;
+
+export function getModelName(): string {
   return model;
 }
 
 export class AiValidationError extends Error {
-  constructor(message, meta = {}) {
+  meta: AiValidationMeta;
+
+  constructor(message: string, meta: AiValidationMeta) {
     super(message);
     this.name = "AiValidationError";
     this.meta = meta;
   }
 }
 
-export async function generateResponse(prompt) {
-  const aiResponse = await genAI.models.generateContent({
-    model: model,
+export async function generateResponse(
+  prompt: string,
+): Promise<GenerateResponseResult> {
+  return genAI.models.generateContent({
+    model,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       responseMimeType: "application/json",
@@ -39,10 +73,9 @@ export async function generateResponse(prompt) {
       temperature: 0.7,
     },
   });
-  return aiResponse;
 }
 
-function extractTextParts(response) {
+function extractTextParts(response: GenerateResponseResult): string {
   if (!Array.isArray(response?.candidates)) {
     return "";
   }
@@ -54,7 +87,10 @@ function extractTextParts(response) {
     .trim();
 }
 
-export function validateAiResponse(response, message) {
+export function validateAiResponse(
+  response: GenerateResponseResult,
+  message: string,
+): ParsedAiRecipe {
   let rawResponse = extractTextParts(response);
 
   if (!rawResponse) {
@@ -71,10 +107,10 @@ export function validateAiResponse(response, message) {
       .trim();
   }
 
-  let parsedRecipe;
+  let parsedRecipe: unknown;
   try {
-    parsedRecipe = JSON.parse(rawResponse);
-  } catch (err) {
+    parsedRecipe = JSON.parse(rawResponse) as unknown;
+  } catch {
     throw new AiValidationError("Invalid JSON from AI", {
       type: "invalid_json",
       rawResponse,
@@ -83,22 +119,30 @@ export function validateAiResponse(response, message) {
     });
   }
 
+  let validatedRecipe: AiRecipe;
   try {
-    parsedRecipe = aiRecipeSchema.parse(parsedRecipe);
-  } catch (err) {
+    validatedRecipe = aiRecipeSchema.parse(parsedRecipe);
+  } catch (error) {
     throw new AiValidationError("AI response did not match recipe schema.", {
       type: "schema_validation_failed",
       rawResponse,
       source_prompt: message,
       ai_model: model,
-      issues: err instanceof z.ZodError ? err.issues : undefined,
+      issues:
+        error instanceof z.ZodError
+          ? error.issues.map((issue) => ({
+              path: issue.path,
+              message: issue.message,
+              code: issue.code,
+            }))
+          : undefined,
     });
   }
 
   if (
-    !parsedRecipe.title?.trim() ||
-    !parsedRecipe.ingredients?.length ||
-    !parsedRecipe.instructions?.length
+    !validatedRecipe.title.trim() ||
+    validatedRecipe.ingredients.length === 0 ||
+    validatedRecipe.instructions.length === 0
   ) {
     throw new AiValidationError(
       "Recipe could not be generated from this input.",
@@ -110,24 +154,27 @@ export function validateAiResponse(response, message) {
     );
   }
 
-  if(parsedRecipe.title.length > 150){
-      throw new AiValidationError(
-      "Recipe title is too long.",
-      {
-        type: "invalid_json",
-        rawResponse,
-        source_prompt: message,
-        ai_model: model,
-      },
-    ); 
+  if (validatedRecipe.title.length > 150) {
+    throw new AiValidationError("Recipe title is too long.", {
+      type: "invalid_json",
+      rawResponse,
+      source_prompt: message,
+      ai_model: model,
+    });
   }
 
-  parsedRecipe.ai_model = model;
-  parsedRecipe.source_prompt = message;
-  return parsedRecipe;
+  return {
+    ...validatedRecipe,
+    ai_model: model,
+    source_prompt: message,
+  };
 }
 
-export function createPrompt(message, recipeVersion = {}, urlContent = {}) {
+export function createPrompt(
+  message: string,
+  recipeVersion: unknown = {},
+  urlContent: unknown = {},
+): string {
   return `
     Parse the culinary input into a single JSON object matching the provided response schema.
 
@@ -197,7 +244,7 @@ export function createPrompt(message, recipeVersion = {}, urlContent = {}) {
   `;
 }
 
-export function askPrompt(currentVersion, message) {
+export function askPrompt(currentVersion: unknown, message: string): string {
   return `
     You are a cooking and recipe assistant.
 

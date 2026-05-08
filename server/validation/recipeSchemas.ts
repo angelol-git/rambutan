@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
 const hexColorSchema = z
@@ -60,8 +61,14 @@ export const addTagSchema = z.object({
   }),
 });
 
-export function validateRequest(schema) {
-  return (req, res, next) => {
+
+export type TagInput = z.infer<typeof tagSchema>;
+export type RecipeDetailsInput = z.infer<typeof recipeDetailsSchema>;
+export type UpdateRecipeBody = z.infer<typeof updateRecipeSchema>["body"];
+export type AddTagBody = z.infer<typeof addTagSchema>["body"];
+
+export function validateRequest<T extends z.ZodTypeAny>(schema:T) {
+  return (req:Request, res:Response, next:NextFunction) => {
     try {
       schema.parse({
         body: req.body,
@@ -73,7 +80,7 @@ export function validateRequest(schema) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: "Validation failed",
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e) => ({
             path: e.path,
             message: e.message,
           })),

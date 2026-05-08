@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import { v7 as uuidv7 } from "uuid";
 import { optionalAuth } from "../middleware.js";
 import {
@@ -18,7 +18,13 @@ import { isValidUrl } from "../utils/urlValidator.js";
 
 const router = express.Router();
 
-router.post("/create", optionalAuth, async (req, res) => {
+type CreateRecipeBody = {
+  message?: string;
+  recipeId?: string | null;
+  recipeVersion?: unknown;
+};
+
+router.post("/create", optionalAuth, async (req: Request<{}, {}, CreateRecipeBody>, res: Response) => {
   const user = req.user;
   const { message, recipeId, recipeVersion } = req.body;
 
@@ -28,24 +34,26 @@ router.post("/create", optionalAuth, async (req, res) => {
 
   try {
     if (user) {
-      saveUserMessage(user.id, recipeId, message);
+      saveUserMessage(user.id, recipeId ?? null, message);
     }
 
-    const URL_REGEX = /(https?:\/\/[^\s]+)/i;
-    const containsUrl = message.match(URL_REGEX);
+    const urlRegex = /(https?:\/\/[^\s]+)/i;
+    const containsUrl = message.match(urlRegex);
     const url = containsUrl ? containsUrl[1] : null;
 
-    let contextData = null;
+    let contextData: string | null = null;
     if (url && isValidUrl(url)) {
-      if(recipeId){
-           return res.status(409).json({ error: "URLs can't be used for new recipe threads. Start a new recipe to import one." }); 
+      if (recipeId) {
+        return res.status(409).json({
+          error: "URLs can't be used for new recipe threads. Start a new recipe to import one.",
+        });
       }
       contextData = await getUrlContext(url);
     } else if (url) {
       console.warn(`Blocked potentially malicious URL: ${url}`);
     }
 
-    const prompt = createPrompt(message, recipeVersion || null, contextData);
+    const prompt = createPrompt(message, recipeVersion ?? null, contextData);
     const aiResponse = await generateResponse(prompt);
     const parsedRecipe = validateAiResponse(aiResponse, message);
 
@@ -58,7 +66,6 @@ router.post("/create", optionalAuth, async (req, res) => {
       return res.json({ reply: savedRecipe, model: getModelName() });
     }
 
-    //Guest recipe do not save into db
     const guestRecipeId = recipeId ?? uuidv7();
     const guestRecipe = {
       id: guestRecipeId,
@@ -82,23 +89,23 @@ router.post("/create", optionalAuth, async (req, res) => {
     };
 
     return res.json({ reply: guestRecipe, model: getModelName() });
-  } catch (err) {
+  } catch (error) {
     const now = new Date();
 
-    if (err instanceof AiValidationError) {
-      console.error(`[${now.toISOString()}] AI validation failed`, err.meta);
+    if (error instanceof AiValidationError) {
+      console.error(`[${now.toISOString()}] AI validation failed`, error.meta);
 
       if (user) {
         saveAiError(user.id, recipeId ?? null, {
-          ...err.meta,
+          ...error.meta,
           ai_model: getModelName(),
         });
       }
 
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: error.message });
     }
 
-    console.error(`[${now.toISOString()}] Create recipe failed`, err);
+    console.error(`[${now.toISOString()}] Create recipe failed`, error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 });
