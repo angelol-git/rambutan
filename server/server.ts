@@ -7,6 +7,8 @@ import recipeRoutes from "./routes/recipes.js";
 import chatRoutes from "./routes/chat.js";
 import tagRoutes from "./routes/tags.js";
 import cookieParser from "cookie-parser";
+import type { ErrorRequestHandler } from "express";
+type ShutdownSignal = "SIGTERM" | "SIGINT";
 
 dotenv.config();
 
@@ -15,7 +17,7 @@ const PORT = process.env.PORT || 8080;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const isProduction = process.env.NODE_ENV === "production";
 
-const log = (message) => {
+const log = (message:string) => {
   if (isProduction) {
     console.log(`[${new Date().toISOString()}] ${message}`);
   } else {
@@ -36,10 +38,12 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.use((err, req, res, next) => {
-  log(`Error: ${err.message}`);
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  log(`Error: ${err instanceof Error ? err.message : String(err)}`);
   res.status(500).json({ error: "Internal server error" });
-});
+};
+
+app.use(errorHandler);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
@@ -51,7 +55,7 @@ const server = app.listen(PORT, () => {
   log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
-const shutdown = (signal) => {
+const shutdown = (signal:ShutdownSignal) => {
   log(`${signal} received. Starting graceful shutdown...`);
   server.close(() => {
     log("Server closed. Exiting process.");
