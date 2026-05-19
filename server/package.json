@@ -5,11 +5,11 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "dist/server.js",
+  "main": "dist/server.ts",
   "scripts": {
     "dev": "tsx watch server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/server.ts",
     "benchmark:create:text": "node scripts/benchmarkCreateTextOnly.js",
     "benchmark:scrape": "node scripts/benchmarkScrapingService.js",
     "benchmark:url-context": "node scripts/benchmarkUrlContextVsScrape.js",
