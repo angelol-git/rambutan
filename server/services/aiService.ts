@@ -13,8 +13,7 @@ if (!apiKey) {
 
 const genAI = new GoogleGenAI({ apiKey });
 
-// const model = "gemini-3-flash-preview";
-const model = "gemini-3.1-flash-lite-preview";
+const model = "gemini-3.1-flash-lite";
 
 type AiRecipe = z.infer<typeof aiRecipeSchema>;
 
