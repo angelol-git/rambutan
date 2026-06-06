@@ -43,7 +43,7 @@ function RecipeTags({ recipe }: RecipeTagsProps) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2 py-2">
+    <div className="flex flex-wrap gap-2">
       {tags?.length > 0 &&
         tags.map((tag) => {
           return (
@@ -97,37 +97,6 @@ function RecipeTags({ recipe }: RecipeTagsProps) {
             />
           </button>
         </div>
-      )}
-      {!isAddingTag && tags.length === 0 && recipe && (
-        <button
-          type="button"
-          onClick={() => {
-            setIsAddingTag((prev) => !prev);
-          }}
-          className="focus-visible:ring-accent/25 group border-accent/35 bg-accent/8 text-accent hover:border-accent/45 hover:bg-accent/18 hover:text-accent-hover inline-flex min-h-8 cursor-pointer items-center justify-center gap-2 rounded-full border px-3 py-1 text-sm leading-none shadow-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <Plus
-            size={14}
-            strokeWidth={1.5}
-            className="stroke-accent group-hover:stroke-accent-hover transition-colors"
-          />
-          Add Tag
-        </button>
-      )}
-      {!isAddingTag && tags.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            setIsAddingTag((prev) => !prev);
-          }}
-          className="focus-visible:ring-accent/25 group border-accent/35 bg-accent/8 text-accent hover:border-accent/45 hover:bg-accent/18 hover:text-accent-hover inline-flex min-h-8 min-w-8 cursor-pointer items-center justify-center rounded-full border px-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <Plus
-            size={14}
-            strokeWidth={1.5}
-            className="stroke-accent group-hover:stroke-accent-hover transition-colors"
-          />
-        </button>
       )}
     </div>
   );

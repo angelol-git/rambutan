@@ -1,7 +1,8 @@
-import { PanelLeftOpen } from "lucide-react";
-import KitchenOptions from "./KitchenOptions";
-import type { Recipe } from "../../../types/recipe";
 import type { Dispatch, SetStateAction } from "react";
+import { Link } from "react-router";
+import KitchenOptions from "./KitchenOptions";
+import { ArrowLeft } from "lucide-react";
+import type { Recipe } from "../../../types/recipe";
 
 type OpenDeleteModal = (
   recipe: Recipe,
@@ -12,8 +13,6 @@ type OpenDeleteModal = (
 type KitchenHeaderProps = {
   recipe: Recipe | null;
   recipeVersion: number;
-  isSideBarOpen: boolean;
-  setIsSideBarOpen: ((nextIsOpen: boolean) => void) | Dispatch<SetStateAction<boolean>>;
   setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
   openDeleteModal: OpenDeleteModal;
   isMobile: boolean;
@@ -22,43 +21,46 @@ type KitchenHeaderProps = {
 const KitchenHeader = ({
   recipe,
   recipeVersion,
-  isSideBarOpen,
-  setIsSideBarOpen,
   setIsEditModalOpen,
   openDeleteModal,
-  isMobile,
 }: KitchenHeaderProps) => {
   return (
-    <div
-      className={`bg-base sticky top-0 z-10 flex w-full justify-between gap-3 border-b-1 border-gray-300 p-2`}
-    >
-      <div className={`flex ${isMobile ? "h-8 w-8 items-center" : "h-8 w-8"}`}>
-        {!isSideBarOpen && (
-          <button
-            onClick={() => setIsSideBarOpen(true)}
-            className="hover:bg-mantle-hover flex cursor-pointer items-center justify-center rounded-lg p-2"
+    <div className="flex justify-center px-4 pt-4 md:pt-8">
+      <div className="flex w-full max-w-screen-md flex-col gap-2 md:flex-row md:items-center md:gap-4">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/"
+            className="hover:bg-mantle-hover w-min cursor-pointer rounded-lg p-1 duration-150"
           >
-            <PanelLeftOpen
-              size={`${isMobile ? "24" : "20"}`}
-              strokeWidth={1.5}
-              className="stroke-icon"
-            />
-          </button>
-        )}
-
-        {isSideBarOpen && isMobile && <div className="h-8 w-8" />}
+            <ArrowLeft strokeWidth={1.5} className="stroke-icon" size={18} />
+          </Link>
+          {recipe && (
+            <div className="block md:hidden">
+              <KitchenOptions
+                recipe={recipe}
+                recipeVersion={recipeVersion}
+                setIsEditModalOpen={setIsEditModalOpen}
+                openDeleteModal={openDeleteModal}
+              />
+            </div>
+          )}
+        </div>
+        <div className="flex w-full items-center justify-between">
+          <h1 className="font-lora line-clamp-2 max-w-screen-md text-3xl leading-snug font-semibold md:text-4xl">
+            {recipe?.title}
+          </h1>
+          {recipe && (
+            <div className="hidden md:block">
+              <KitchenOptions
+                recipe={recipe}
+                recipeVersion={recipeVersion}
+                setIsEditModalOpen={setIsEditModalOpen}
+                openDeleteModal={openDeleteModal}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <h1 className="font-lora line-clamp-2 w-full max-w-screen-md text-2xl leading-snug font-semibold lg:px-4">
-        {recipe?.title}
-      </h1>
-      {recipe && (
-        <KitchenOptions
-          recipe={recipe}
-          recipeVersion={recipeVersion}
-          setIsEditModalOpen={setIsEditModalOpen}
-          openDeleteModal={openDeleteModal}
-        />
-      )}
     </div>
   );
 };

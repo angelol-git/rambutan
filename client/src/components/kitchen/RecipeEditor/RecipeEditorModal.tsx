@@ -69,7 +69,7 @@ function RecipeEditorModal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[200] bg-black/10 backdrop-blur-xs transition-opacity duration-300 ${isEditModalOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`fixed inset-0 z-[200] bg-black/10 transition-opacity duration-300 ${isEditModalOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
       onClick={() => setIsEditModalOpen(false)}
     >
       <div

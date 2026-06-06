@@ -35,7 +35,7 @@ function RecipePromptModal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[200] bg-black/10 backdrop-blur-xs transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[200] bg-black/10 transition-opacity duration-300 ${
         isOpen
           ? "pointer-events-auto opacity-100"
           : "pointer-events-none opacity-0"
