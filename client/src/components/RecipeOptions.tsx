@@ -54,7 +54,7 @@ function RecipeOptions({
         }}
         aria-haspopup="true"
         aria-expanded={isOptionsOpen}
-        aria-label="Chat options"
+        aria-label="Recipe options"
         className="color-black hover:bg-mantle-hover cursor-pointer rounded-md px-2 py-1 font-bold duration-150"
         ref={buttonRef}
       >

@@ -3,29 +3,34 @@ import type { Recipe, RecipeVersion } from "../types/recipe";
 
 const backendUrl = `${API_BASE_URL}/kitchen`;
 
-export type CreateMessagePayload = {
-  message: string;
+export type RecipePromptPayload = {
+  prompt: string;
   recipeId?: string;
   recipeVersion?: RecipeVersion;
 };
 
-export type CreateMessageResponse = {
-  reply: Recipe;
+export type RecipePromptResponse = {
+  recipe: Recipe;
 };
 
-export async function sendCreateMessage(
-  payload: CreateMessagePayload,
-): Promise<CreateMessageResponse> {
+export async function submitRecipePrompt(
+  payload: RecipePromptPayload,
+): Promise<RecipePromptResponse> {
   const res = await fetch(`${backendUrl}/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      prompt: payload.prompt,
+      recipeId: payload.recipeId,
+      recipeVersion: payload.recipeVersion,
+    }),
   });
   if (!res.ok) {
     const data = await res.json();
     throw data;
   }
 
-  return res.json();
+  const data = await res.json();
+  return { recipe: data.recipe ?? data.reply };
 }

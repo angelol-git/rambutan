@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import Markdown from "react-markdown";
 import { X } from "lucide-react";
-import ChatAskInput from "./ChatAskInput";
+import RecipeQuestionInput from "./RecipeQuestionInput";
 
-function ChatAskModal({
-  isAskModalOpen,
-  setIsAskModalOpen,
+function RecipeQuestionsModal({
+  isQuestionsModalOpen,
+  setIsQuestionsModalOpen,
   askMessages,
   sendAskMessage,
   isReplyLoading,
@@ -18,16 +18,16 @@ function ChatAskModal({
   useEffect(() => {
     function handleClickOutside(e) {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
-        setIsAskModalOpen(false);
+        setIsQuestionsModalOpen(false);
       }
     }
-    if (isAskModalOpen) {
+    if (isQuestionsModalOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isAskModalOpen, setIsAskModalOpen]);
+  }, [isQuestionsModalOpen, setIsQuestionsModalOpen]);
 
   function scrollToBottom() {
     if (messagesEndRef.current) {
@@ -39,16 +39,16 @@ function ChatAskModal({
   }
 
   useEffect(() => {
-    if (isAskModalOpen) {
+    if (isQuestionsModalOpen) {
       scrollToBottom();
     }
-  }, [isAskModalOpen]);
+  }, [isQuestionsModalOpen]);
 
   useEffect(() => {
     scrollToBottom();
   }, [askMessages]);
 
-  if (!isAskModalOpen) return null;
+  if (!isQuestionsModalOpen) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex w-full justify-center bg-black/40 p-4">
       <div
@@ -57,7 +57,7 @@ function ChatAskModal({
       >
         <div className="flex">
           <button
-            onClick={() => setIsAskModalOpen(false)}
+            onClick={() => setIsQuestionsModalOpen(false)}
             className="bg-crust cursor-pointer rounded-full p-2"
           >
             <X size={20} strokeWidth={1.5} className="text-icon" />
@@ -93,7 +93,7 @@ function ChatAskModal({
             );
           })}
         </div>
-        <ChatAskInput
+        <RecipeQuestionInput
           askMessage={askMessage}
           setAskMessage={setAskMessage}
           sendAskMessage={sendAskMessage}
@@ -105,4 +105,4 @@ function ChatAskModal({
   );
 }
 
-export default ChatAskModal;
+export default RecipeQuestionsModal;

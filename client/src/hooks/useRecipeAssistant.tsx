@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  sendCreateMessage,
-  type CreateMessagePayload,
-  type CreateMessageResponse,
+  submitRecipePrompt,
+  type RecipePromptPayload,
+  type RecipePromptResponse,
 } from "../api/kitchen";
 import { addLocalRecipe, addLocalRecipeVersion } from "../utils/storage";
 import { useUser } from "./useUser";
@@ -19,21 +19,21 @@ type ApiError = {
   error?: string;
 };
 
-export function useChat(showToast: ShowToast) {
+export function useRecipeAssistant(showToast: ShowToast) {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const recipesQueryKey = ["recipes", user?.id || "guest_recipes"];
 
-  const sendCreateMessageMutation = useMutation<
-    CreateMessageResponse,
+  const submitRecipePromptMutation = useMutation<
+    RecipePromptResponse,
     ApiError,
-    CreateMessagePayload,
+    RecipePromptPayload,
     MutationContext
   >({
     mutationFn: async (
-      payload: CreateMessagePayload,
-    ): Promise<CreateMessageResponse> => {
-      return sendCreateMessage(payload);
+      payload: RecipePromptPayload,
+    ): Promise<RecipePromptResponse> => {
+      return submitRecipePrompt(payload);
     },
 
     onMutate: async (): Promise<MutationContext> => {
@@ -56,7 +56,7 @@ export function useChat(showToast: ShowToast) {
     },
 
     onSuccess: (data, variables) => {
-      const newRecipe = data.reply;
+      const newRecipe = data.recipe;
       const isNewRecipe = !variables.recipeId;
 
       queryClient.setQueryData<Recipe[]>(recipesQueryKey, (old = []) => {
@@ -86,8 +86,8 @@ export function useChat(showToast: ShowToast) {
   });
 
   return {
-    sendCreateMessage: sendCreateMessageMutation.mutateAsync,
-    isPending: sendCreateMessageMutation.isPending,
-    isSuccess: sendCreateMessageMutation.isSuccess,
+    submitRecipePrompt: submitRecipePromptMutation.mutateAsync,
+    isPending: submitRecipePromptMutation.isPending,
+    isSuccess: submitRecipePromptMutation.isSuccess,
   };
 }

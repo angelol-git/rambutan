@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState, Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router";
-import ChatReply from "../../components/chat/ChatReply/ChatReply.js";
-import ChatNavigation from "../../components/chat/ChatControls/ChatNavigation.js";
-import ChatInput from "../../components/chat/ChatControls/ChatInput.jsx";
-import ChatEditModal from "../../components/chat/ChatEditModal/ChatEditModal.jsx";
-import ChatTags from "../../components/chat/ChatReply/ChatTags.jsx";
-import ChatAskModal from "../../components/chat/ChatAsk/ChatAskModal.jsx";
+import RecipeResponse from "../../components/kitchen/RecipeResponse/RecipeResponse.js";
+import RecipeVersionNavigation from "../../components/kitchen/AssistantComposer/RecipeVersionNavigation.js";
+import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
+import RecipeEditorModal from "../../components/kitchen/RecipeEditor/RecipeEditorModal.jsx";
+import RecipeTags from "../../components/kitchen/RecipeResponse/RecipeTags.jsx";
 import NotFound from "../NotFound.jsx";
 import { Recipe } from "../../types/recipe.js";
 
-type ChatOutletContext = {
+type KitchenOutletContext = {
   recipe: Recipe;
   recipeVersion: number;
   setRecipeVersion: Dispatch<SetStateAction<number>>;
@@ -17,7 +16,7 @@ type ChatOutletContext = {
   setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
   isLoading: boolean;
 };
-function Chat() {
+function RecipeWorkspace() {
   const {
     recipe,
     recipeVersion,
@@ -25,10 +24,11 @@ function Chat() {
     isEditModalOpen,
     setIsEditModalOpen,
     isLoading,
-  } = useOutletContext<ChatOutletContext>();
+  } = useOutletContext<KitchenOutletContext>();
 
-  const [isAskModalOpen, setIsAskModalOpen] = useState<boolean>(false);
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isQuestionsModalOpen, setIsQuestionsModalOpen] =
+    useState<boolean>(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
   const [composerHeight, setComposerHeight] = useState<number>(0);
   const composerRef = useRef<HTMLDivElement | null>(null);
   const replyPanelRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +58,7 @@ function Chat() {
       observer.disconnect();
       window.removeEventListener("resize", updateComposerHeight);
     };
-  }, [isChatOpen, hasRecipeNavigation]);
+  }, [isAssistantOpen, hasRecipeNavigation]);
 
   if (!recipe && !isLoading) {
     return <NotFound />;
@@ -72,8 +72,8 @@ function Chat() {
           className="mx-auto w-full max-w-screen-md px-4 pt-2"
           style={{ paddingBottom: `${composerHeight + 16}px` }}
         >
-          <ChatTags recipe={recipe} />
-          <ChatReply
+          <RecipeTags recipe={recipe} />
+          <RecipeResponse
             recipe={recipe}
             recipeVersion={recipeVersion}
             modalAnchorRef={replyPanelRef}
@@ -81,7 +81,7 @@ function Chat() {
         </div>
       </div>
 
-      <ChatEditModal
+      <RecipeEditorModal
         recipe={recipe}
         recipeVersion={recipeVersion}
         isEditModalOpen={isEditModalOpen}
@@ -95,9 +95,9 @@ function Chat() {
           className="pb-safe mx-auto w-full max-w-screen-md px-2 pt-2"
         >
           <div className="flex items-center justify-between gap-3">
-            {hasRecipeNavigation && !isChatOpen && (
+            {hasRecipeNavigation && !isAssistantOpen && (
               <div className="pointer-events-auto shrink-0">
-                <ChatNavigation
+                <RecipeVersionNavigation
                   recipe={recipe}
                   recipeVersion={recipeVersion}
                   setRecipeVersion={setRecipeVersion}
@@ -106,26 +106,27 @@ function Chat() {
             )}
             <div
               className={`pointer-events-auto flex justify-end ${
-                isChatOpen ? "flex-1" : "ml-auto shrink-0"
+                isAssistantOpen ? "flex-1" : "ml-auto shrink-0"
               }`}
             >
-              <ChatInput
+              <AssistantComposer
                 recipe={recipe}
                 recipeVersion={recipeVersion}
                 setRecipeVersion={setRecipeVersion}
                 hasRecipeNavigation={hasRecipeNavigation}
-                isChatOpen={isChatOpen}
-                setIsChatOpen={setIsChatOpen}
-                isAskModalOpen={isAskModalOpen}
-                setIsAskModalOpen={setIsAskModalOpen}
+                isAssistantOpen={isAssistantOpen}
+                setIsAssistantOpen={setIsAssistantOpen}
+                isQuestionsModalOpen={isQuestionsModalOpen}
+                setIsQuestionsModalOpen={setIsQuestionsModalOpen}
                 variant="existing"
               />
             </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
 
-export default Chat;
+export default RecipeWorkspace;

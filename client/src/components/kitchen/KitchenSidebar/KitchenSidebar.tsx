@@ -4,7 +4,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { X, PanelLeftClose, CirclePlus } from "lucide-react";
 import logo from "../../../assets/logo.png";
 import UserOptions from "../../UserOptions";
-import SideBarItem from "./SideBarItem";
+import RecipeSidebarItem from "./RecipeSidebarItem";
 import type { Recipe } from "../../../types/recipe";
 import type { User } from "../../../types/user";
 
@@ -14,7 +14,7 @@ type OpenDeleteModal = (
   recipeVersion?: number | null,
 ) => void;
 
-type ChatSideBarProps = {
+type KitchenSidebarProps = {
   recipes: Recipe[];
   user: User | null;
   logout: UseMutationResult<unknown, Error, void, unknown>;
@@ -27,7 +27,7 @@ type ChatSideBarProps = {
   openDeleteModal: OpenDeleteModal;
 };
 
-const ChatSideBar = memo(
+const KitchenSidebar = memo(
   ({
     recipes,
     user,
@@ -39,7 +39,7 @@ const ChatSideBar = memo(
     setIsSideBarOpen,
     currentRecipe,
     openDeleteModal,
-  }: ChatSideBarProps) => {
+  }: KitchenSidebarProps) => {
     const [hasMounted, setHasMounted] = useState(false);
 
     useEffect(() => {
@@ -113,7 +113,7 @@ const ChatSideBar = memo(
           <div className="flex w-full flex-col overflow-y-auto">
             {recipes.map((recipe) => {
               return (
-                <SideBarItem
+                <RecipeSidebarItem
                   key={recipe.id}
                   recipe={recipe}
                   isActive={currentRecipe?.id === recipe.id}
@@ -147,6 +147,6 @@ const ChatSideBar = memo(
   },
 );
 
-ChatSideBar.displayName = "ChatSideBar";
+KitchenSidebar.displayName = "KitchenSidebar";
 
-export default ChatSideBar;
+export default KitchenSidebar;

@@ -11,7 +11,7 @@ function getStoredSidebarState(userId: User["id"]) {
   }
 }
 
-export function useChatSidebar(
+export function useKitchenSidebar(
   user: User | null,
   isMobile: boolean,
   isUserLoading: boolean,

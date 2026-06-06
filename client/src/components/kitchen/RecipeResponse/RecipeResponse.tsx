@@ -1,5 +1,5 @@
 import { useState, memo, RefObject } from "react";
-import ChatPromptModal from "./ChatPromptModal";
+import RecipePromptModal from "./RecipePromptModal";
 import RecipeDetailsBar from "./RecipeDetailsBar";
 import type { Recipe, RecipeDetails } from "../../../types/recipe";
 
@@ -9,14 +9,14 @@ const EMPTY_RECIPE_DETAILS: RecipeDetails = {
   total_time: null,
 };
 
-type ChatReplyProps = {
+type RecipeResponseProps = {
   recipe: Recipe;
   recipeVersion: number;
   modalAnchorRef: RefObject<HTMLDivElement | null>;
 };
 
-const ChatReply = memo(
-  ({ recipe, recipeVersion, modalAnchorRef }: ChatReplyProps) => {
+const RecipeResponse = memo(
+  ({ recipe, recipeVersion, modalAnchorRef }: RecipeResponseProps) => {
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
     const current = recipe?.versions?.[recipeVersion];
 
@@ -103,7 +103,7 @@ const ChatReply = memo(
           </div>
         )}
 
-        <ChatPromptModal
+        <RecipePromptModal
           isOpen={isPromptModalOpen}
           onClose={() => setIsPromptModalOpen(false)}
           sourcePrompt={source_prompt || ""}
@@ -114,6 +114,6 @@ const ChatReply = memo(
   },
 );
 
-ChatReply.displayName = "ChatReply";
+RecipeResponse.displayName = "RecipeResponse";
 
-export default ChatReply;
+export default RecipeResponse;

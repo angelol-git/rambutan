@@ -9,19 +9,19 @@ type OpenDeleteModal = (
   recipeVersion?: number | null,
 ) => void;
 
-type ChatOptionsProps = {
+type KitchenOptionsProps = {
   recipe: Recipe;
   recipeVersion: number;
   setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
   openDeleteModal: OpenDeleteModal;
 };
 
-function ChatOptions({
+function KitchenOptions({
   recipe,
   recipeVersion,
   setIsEditModalOpen,
   openDeleteModal,
-}: ChatOptionsProps) {
+}: KitchenOptionsProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -47,7 +47,7 @@ function ChatOptions({
         onClick={() => setIsOptionsOpen((prev) => !prev)}
         aria-haspopup="true"
         aria-expanded={isOptionsOpen}
-        aria-label="Chat options"
+        aria-label="Kitchen options"
         className={`hover:bg-mantle-hover color-black cursor-pointer rounded-md px-2 py-1 font-bold duration-150 ${
           isOptionsOpen ? "bg-crust" : ""
         }`}
@@ -123,4 +123,4 @@ function ChatOptions({
   );
 }
 
-export default ChatOptions;
+export default KitchenOptions;

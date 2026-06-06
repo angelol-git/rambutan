@@ -5,11 +5,11 @@ import type { Recipe } from "../../../types/recipe";
 import type { DraftTag } from "../../../types/tag";
 import TagChip from "../../tags/TagChip";
 
-type ChatTagsProps = {
+type RecipeTagsProps = {
   recipe: Recipe | null;
 };
 
-function ChatTags({ recipe }: ChatTagsProps) {
+function RecipeTags({ recipe }: RecipeTagsProps) {
   const newTagRef = useRef<HTMLInputElement | null>(null);
   const { addRecipeTag } = useRecipeMutations();
   const tags = recipe?.tags || [];
@@ -133,4 +133,4 @@ function ChatTags({ recipe }: ChatTagsProps) {
   );
 }
 
-export default ChatTags;
+export default RecipeTags;

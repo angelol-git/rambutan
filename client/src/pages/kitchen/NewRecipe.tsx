@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import ChatInput from "../../components/chat/ChatControls/ChatInput";
+import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
 
-function NewChat() {
+function NewRecipe() {
   // Hide shell once component is ready
   useEffect(() => {
     window.hideShell?.();
@@ -30,11 +30,11 @@ function NewChat() {
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
         <div className="pb-safe pointer-events-auto mx-auto w-full max-w-screen-md px-4 pt-2">
-          <ChatInput variant="new-chat" />
+          <AssistantComposer variant="new-recipe" />
         </div>
       </div>
     </div>
   );
 }
 
-export default NewChat;
+export default NewRecipe;

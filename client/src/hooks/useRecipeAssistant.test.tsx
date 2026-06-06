@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useChat } from "./useChat";
-import { sendCreateMessage } from "../api/kitchen";
+import { useRecipeAssistant } from "./useRecipeAssistant";
+import { submitRecipePrompt } from "../api/kitchen";
 import { addLocalRecipe, addLocalRecipeVersion } from "../utils/storage";
 import type { Recipe } from "../types/recipe";
 import { createQueryClientWrapper } from "../test/queryClient";
@@ -9,7 +9,7 @@ const mockShowToast = vi.fn();
 const mockUseUser = vi.fn();
 
 vi.mock("../api/kitchen", () => ({
-  sendCreateMessage: vi.fn(),
+  submitRecipePrompt: vi.fn(),
 }));
 
 vi.mock("./useUser", () => ({
@@ -54,7 +54,7 @@ function createRecipe({
   };
 }
 
-describe("useChat", () => {
+describe("useRecipeAssistant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
@@ -64,9 +64,11 @@ describe("useChat", () => {
 
   it("returns the default state on first render", () => {
     const { wrapper } = createQueryClientWrapper();
-    const { result } = renderHook(() => useChat(mockShowToast), { wrapper });
+    const { result } = renderHook(() => useRecipeAssistant(mockShowToast), {
+      wrapper,
+    });
 
-    expect(result.current.sendCreateMessage).toBeTypeOf("function");
+    expect(result.current.submitRecipePrompt).toBeTypeOf("function");
     expect(result.current.isPending).toBe(false);
     expect(result.current.isSuccess).toBe(false);
   });
@@ -87,24 +89,26 @@ describe("useChat", () => {
 
     queryClient.setQueryData(recipesQueryKey, previousRecipes);
 
-    vi.mocked(sendCreateMessage).mockRejectedValue({
-      message: "Failed to create message",
+    vi.mocked(submitRecipePrompt).mockRejectedValue({
+      message: "Failed to submit prompt",
     });
 
-    const { result } = renderHook(() => useChat(mockShowToast), { wrapper });
+    const { result } = renderHook(() => useRecipeAssistant(mockShowToast), {
+      wrapper,
+    });
 
     await act(async () => {
       await expect(
-        result.current.sendCreateMessage({
-          message: "Make me a pasta recipe",
+        result.current.submitRecipePrompt({
+          prompt: "Make me a pasta recipe",
         }),
       ).rejects.toEqual({
-        message: "Failed to create message",
+        message: "Failed to submit prompt",
       });
     });
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      "Failed to create message",
+      "Failed to submit prompt",
       "error",
     );
 
@@ -133,15 +137,17 @@ describe("useChat", () => {
     const recipesQueryKey = ["recipes", "guest_recipes"];
     queryClient.setQueryData(recipesQueryKey, existingRecipes);
 
-    vi.mocked(sendCreateMessage).mockResolvedValue({
-      reply: newRecipe,
+    vi.mocked(submitRecipePrompt).mockResolvedValue({
+      recipe: newRecipe,
     });
 
-    const { result } = renderHook(() => useChat(mockShowToast), { wrapper });
+    const { result } = renderHook(() => useRecipeAssistant(mockShowToast), {
+      wrapper,
+    });
 
     await act(async () => {
-      await result.current.sendCreateMessage({
-        message: "Make me a soup recipe",
+      await result.current.submitRecipePrompt({
+        prompt: "Make me a soup recipe",
       });
     });
 
@@ -175,15 +181,17 @@ describe("useChat", () => {
       description: "Soup version",
     });
 
-    vi.mocked(sendCreateMessage).mockResolvedValue({
-      reply: newRecipe,
+    vi.mocked(submitRecipePrompt).mockResolvedValue({
+      recipe: newRecipe,
     });
 
-    const { result } = renderHook(() => useChat(mockShowToast), { wrapper });
+    const { result } = renderHook(() => useRecipeAssistant(mockShowToast), {
+      wrapper,
+    });
 
     await act(async () => {
-      await result.current.sendCreateMessage({
-        message: "Create a soup recipe",
+      await result.current.submitRecipePrompt({
+        prompt: "Create a soup recipe",
       });
     });
 
@@ -237,17 +245,19 @@ describe("useChat", () => {
 
     queryClient.setQueryData(["recipes", "user-1"], [existingRecipe]);
 
-    vi.mocked(sendCreateMessage).mockResolvedValue({
-      reply: updatedRecipe,
+    vi.mocked(submitRecipePrompt).mockResolvedValue({
+      recipe: updatedRecipe,
     });
 
-    const { result } = renderHook(() => useChat(mockShowToast), { wrapper });
+    const { result } = renderHook(() => useRecipeAssistant(mockShowToast), {
+      wrapper,
+    });
 
     await act(async () => {
-      await result.current.sendCreateMessage({
+      await result.current.submitRecipePrompt({
         recipeId: existingRecipe.id,
         recipeVersion: existingRecipe.versions[0],
-        message: "Improve this recipe",
+        prompt: "Improve this recipe",
       });
     });
 

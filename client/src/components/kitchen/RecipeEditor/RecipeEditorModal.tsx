@@ -11,7 +11,7 @@ import EditInstructions from "./EditInstructions";
 import useModalAnchor from "../../../hooks/useModalAnchor";
 import type { Recipe, UpdateRecipeInput } from "../../../types/recipe";
 
-type ChatEditModalProps = {
+type RecipeEditorModalProps = {
   recipe: Recipe;
   recipeVersion: number;
   isEditModalOpen: boolean;
@@ -19,13 +19,13 @@ type ChatEditModalProps = {
   anchorRef: RefObject<HTMLDivElement | null>;
 };
 
-function ChatEditModal({
+function RecipeEditorModal({
   recipe,
   recipeVersion,
   isEditModalOpen,
   setIsEditModalOpen,
   anchorRef,
-}: ChatEditModalProps) {
+}: RecipeEditorModalProps) {
   const modalRef = useRef(null);
   const anchorStyle = useModalAnchor(anchorRef, isEditModalOpen);
   const { updateRecipe } = useRecipeMutations();
@@ -136,4 +136,4 @@ function ChatEditModal({
   );
 }
 
-export default ChatEditModal;
+export default RecipeEditorModal;

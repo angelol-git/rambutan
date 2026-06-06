@@ -261,15 +261,15 @@ function getRecipeByIdInternal(
   };
 }
 
-export function saveUserMessage(
+export function saveUserPrompt(
   userId: UserId,
   recipeId: RecipeId | null | undefined,
-  message: string,
+  prompt: string,
 ): void {
   db.prepare(
     `INSERT INTO messages (user_id, recipe_id, role, content, status)
      VALUES (?, ?, 'user', ?, 'create')`,
-  ).run(userId, recipeId ?? null, message);
+  ).run(userId, recipeId ?? null, prompt);
 }
 
 export function saveAiError(

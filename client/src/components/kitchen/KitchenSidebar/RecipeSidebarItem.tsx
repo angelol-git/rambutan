@@ -9,7 +9,7 @@ type OpenDeleteModal = (
   recipeVersion?: number | null,
 ) => void;
 
-type SideBarItemProps = {
+type RecipeSidebarItemProps = {
   recipe: Recipe;
   isActive: boolean;
   isMobile: boolean;
@@ -17,14 +17,14 @@ type SideBarItemProps = {
   openDeleteModal: OpenDeleteModal;
 };
 
-const SideBarItem = memo(
+const RecipeSidebarItem = memo(
   ({
     recipe,
     isActive,
     isMobile,
     setIsSideBarOpen,
     openDeleteModal,
-  }: SideBarItemProps) => {
+  }: RecipeSidebarItemProps) => {
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
     return (
@@ -51,6 +51,6 @@ const SideBarItem = memo(
   },
 );
 
-SideBarItem.displayName = "SideBarItem";
+RecipeSidebarItem.displayName = "RecipeSidebarItem";
 
-export default SideBarItem;
+export default RecipeSidebarItem;

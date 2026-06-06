@@ -88,14 +88,14 @@ function extractTextParts(response: GenerateResponseResult): string {
 
 export function validateAiResponse(
   response: GenerateResponseResult,
-  message: string,
+  prompt: string,
 ): ParsedAiRecipe {
   let rawResponse = extractTextParts(response);
 
   if (!rawResponse) {
     throw new AiValidationError("The AI returned an empty response.", {
       type: "empty_response",
-      source_prompt: message,
+      source_prompt: prompt,
     });
   }
 
@@ -113,7 +113,7 @@ export function validateAiResponse(
     throw new AiValidationError("Invalid JSON from AI", {
       type: "invalid_json",
       rawResponse,
-      source_prompt: message,
+      source_prompt: prompt,
       ai_model: model,
     });
   }
@@ -125,7 +125,7 @@ export function validateAiResponse(
     throw new AiValidationError("AI response did not match recipe schema.", {
       type: "schema_validation_failed",
       rawResponse,
-      source_prompt: message,
+      source_prompt: prompt,
       ai_model: model,
       issues:
         error instanceof z.ZodError
@@ -148,7 +148,7 @@ export function validateAiResponse(
       {
         type: "empty_recipe",
         rawResponse,
-        source_prompt: message,
+        source_prompt: prompt,
       },
     );
   }
@@ -157,7 +157,7 @@ export function validateAiResponse(
     throw new AiValidationError("Recipe title is too long.", {
       type: "invalid_json",
       rawResponse,
-      source_prompt: message,
+      source_prompt: prompt,
       ai_model: model,
     });
   }
@@ -165,12 +165,12 @@ export function validateAiResponse(
   return {
     ...validatedRecipe,
     ai_model: model,
-    source_prompt: message,
+    source_prompt: prompt,
   };
 }
 
 export function createPrompt(
-  message: string,
+  prompt: string,
   recipeVersion: unknown = {},
   urlContent: unknown = {},
 ): string {
@@ -205,7 +205,7 @@ export function createPrompt(
 
     Modification handling:
     - If Current State is provided, determine whether the user wants a modification or a new recipe.
-    - Treat scaling, substitutions, dietary changes, flavor changes, and method changes as modifications unless the message clearly asks for a new recipe.
+    - Treat scaling, substitutions, dietary changes, flavor changes, and method changes as modifications unless the prompt clearly asks for a new recipe.
     - For scaling, adjust all ingredient quantities proportionally using: new servings / original servings.
     - Keep calories per serving constant when only scaling servings.
     - When scaling, recalculate total_time based on realistic elapsed cooking time, not a direct servings multiplier.
@@ -217,7 +217,7 @@ export function createPrompt(
     - Update the title and description when a major modification was made.
 
     Relevancy guardrail:
-    - If the user message is gibberish or unrelated to recipes, cooking, food, ingredients, or culinary topics, return an empty recipe with:
+    - If the user prompt is gibberish or unrelated to recipes, cooking, food, ingredients, or culinary topics, return an empty recipe with:
       title = ""
       description = ""
       ingredients = []
@@ -237,13 +237,13 @@ export function createPrompt(
     - Infer a conservative integer calories-per-serving estimate if missing.
 
     Context:
-    User Message: "${message}"
+    User Prompt: "${prompt}"
     Extracted Web Data: ${urlContent || "None"}
     Current State: ${JSON.stringify(recipeVersion)}
   `;
 }
 
-export function askPrompt(currentVersion: unknown, message: string): string {
+export function askPrompt(currentVersion: unknown, question: string): string {
   return `
     You are a cooking and recipe assistant.
 
@@ -266,6 +266,6 @@ export function askPrompt(currentVersion: unknown, message: string): string {
     - If the recipe data is incomplete, make reasonable assumptions but clearly indicate they are estimates.
     - Never return JSON or code. Reply as plain text only.
 
-    User message: "${message}"
+    User question: "${question}"
     `;
 }

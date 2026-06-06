@@ -6,7 +6,7 @@ function parseArgs(argv) {
     url: "http://localhost:8080/api/kitchen/create",
     iterations: 2,
     concurrency: 1,
-    message: `* 1 and 3/4 cups (219g) all-purpose flour (spoon & leveled)
+    prompt: `* 1 and 3/4 cups (219g) all-purpose flour (spoon & leveled)
 * 1 teaspoon baking soda
 * 1 teaspoon baking powder
 * 1/2 teaspoon salt
@@ -38,8 +38,8 @@ Bake for 5 minutes at 425 then, keeping the muffins in the oven, reduce the oven
     } else if (arg === "--concurrency" && next) {
       options.concurrency = Number.parseInt(next, 10);
       i += 1;
-    } else if (arg === "--message" && next) {
-      options.message = next;
+    } else if ((arg === "--prompt" || arg === "--message") && next) {
+      options.prompt = next;
       i += 1;
     }
   }
@@ -55,7 +55,7 @@ Bake for 5 minutes at 425 then, keeping the muffins in the oven, reduce the oven
   return options;
 }
 
-async function timeRequest(url, message) {
+async function timeRequest(url, prompt) {
   const startedAt = performance.now();
 
   const response = await fetch(url, {
@@ -63,7 +63,7 @@ async function timeRequest(url, message) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ prompt }),
   });
 
   const durationMs = performance.now() - startedAt;
@@ -77,7 +77,7 @@ async function timeRequest(url, message) {
 
   return {
     durationMs,
-    title: body?.reply?.title ?? null,
+    title: body?.recipe?.title ?? body?.reply?.title ?? null,
     model: body?.model ?? null,
   };
 }
@@ -92,7 +92,7 @@ function formatSeconds(durationMs) {
 }
 
 async function run() {
-  const { url, iterations, concurrency, message } = parseArgs(
+  const { url, iterations, concurrency, prompt } = parseArgs(
     process.argv.slice(2),
   );
   const results = [];
@@ -102,7 +102,7 @@ async function run() {
   console.log(`URL: ${url}`);
   console.log(`Iterations: ${iterations}`);
   console.log(`Concurrency: ${concurrency}`);
-  // console.log(`Message: ${message}`);
+  // console.log(`Prompt: ${prompt}`);
 
   async function worker() {
     while (completed < iterations) {
@@ -113,7 +113,7 @@ async function run() {
         return;
       }
 
-      const result = await timeRequest(url, message);
+      const result = await timeRequest(url, prompt);
       results.push(result);
       console.log(
         `#${current + 1} ${formatSeconds(result.durationMs)}${result.model ? ` | ${result.model}` : ""}${result.title ? ` | ${result.title}` : ""}`,

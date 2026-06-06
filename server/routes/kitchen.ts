@@ -9,7 +9,7 @@ import {
   AiValidationError,
 } from "../services/aiService.js";
 import {
-  saveUserMessage,
+  saveUserPrompt,
   saveAiError,
   saveRecipeToDb,
 } from "../services/dbService.js";
@@ -19,6 +19,7 @@ import { isValidUrl } from "../utils/urlValidator.js";
 const router = express.Router();
 
 type CreateRecipeBody = {
+  prompt?: string;
   message?: string;
   recipeId?: string | null;
   recipeVersion?: unknown;
@@ -26,19 +27,20 @@ type CreateRecipeBody = {
 
 router.post("/create", optionalAuth, async (req: Request<{}, {}, CreateRecipeBody>, res: Response) => {
   const user = req.user;
-  const { message, recipeId, recipeVersion } = req.body;
+  const { prompt, message, recipeId, recipeVersion } = req.body;
+  const recipePrompt = prompt ?? message;
 
-  if (!message?.trim()) {
-    return res.status(400).json({ error: "Message is required" });
+  if (!recipePrompt?.trim()) {
+    return res.status(400).json({ error: "Prompt is required" });
   }
 
   try {
     if (user) {
-      saveUserMessage(user.id, recipeId ?? null, message);
+      saveUserPrompt(user.id, recipeId ?? null, recipePrompt);
     }
 
     const urlRegex = /(https?:\/\/[^\s]+)/i;
-    const containsUrl = message.match(urlRegex);
+    const containsUrl = recipePrompt.match(urlRegex);
     const url = containsUrl ? containsUrl[1] : null;
 
     let contextData: string | null = null;
@@ -53,9 +55,9 @@ router.post("/create", optionalAuth, async (req: Request<{}, {}, CreateRecipeBod
       console.warn(`Blocked potentially malicious URL: ${url}`);
     }
 
-    const prompt = createPrompt(message, recipeVersion ?? null, contextData);
-    const aiResponse = await generateResponse(prompt);
-    const parsedRecipe = validateAiResponse(aiResponse, message);
+    const aiPrompt = createPrompt(recipePrompt, recipeVersion ?? null, contextData);
+    const aiResponse = await generateResponse(aiPrompt);
+    const parsedRecipe = validateAiResponse(aiResponse, recipePrompt);
 
     if (user) {
       const savedRecipe = saveRecipeToDb(parsedRecipe, {
@@ -63,7 +65,11 @@ router.post("/create", optionalAuth, async (req: Request<{}, {}, CreateRecipeBod
         recipeId: recipeId ?? null,
         sourceUrl: url,
       });
-      return res.json({ reply: savedRecipe, model: getModelName() });
+      return res.json({
+        recipe: savedRecipe,
+        reply: savedRecipe,
+        model: getModelName(),
+      });
     }
 
     const guestRecipeId = recipeId ?? uuidv7();
@@ -88,7 +94,11 @@ router.post("/create", optionalAuth, async (req: Request<{}, {}, CreateRecipeBod
       ],
     };
 
-    return res.json({ reply: guestRecipe, model: getModelName() });
+    return res.json({
+      recipe: guestRecipe,
+      reply: guestRecipe,
+      model: getModelName(),
+    });
   } catch (error) {
     const now = new Date();
 

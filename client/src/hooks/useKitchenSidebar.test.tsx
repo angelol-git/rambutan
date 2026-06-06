@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useChatSidebar } from "./useChatSidebar";
+import { useKitchenSidebar } from "./useKitchenSidebar";
 
-describe("useChatSideBar", () => {
+describe("useKitchenSidebar", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
@@ -17,7 +17,7 @@ describe("useChatSideBar", () => {
     };
 
     const { result, rerender } = renderHook(
-      ({ isUserLoading }) => useChatSidebar(user, false, isUserLoading),
+      ({ isUserLoading }) => useKitchenSidebar(user, false, isUserLoading),
       {
         initialProps: { isUserLoading: true },
       },
@@ -43,7 +43,7 @@ describe("useChatSideBar", () => {
       email: "test@example.com",
     };
 
-    const { result } = renderHook(() => useChatSidebar(user, false, false));
+    const { result } = renderHook(() => useKitchenSidebar(user, false, false));
 
     await waitFor(() => {
       expect(result.current.isSidebarHydrated).toBe(true);
@@ -58,7 +58,7 @@ describe("useChatSideBar", () => {
       email: "test@example.com",
     };
 
-    const { result } = renderHook(() => useChatSidebar(user, false, false));
+    const { result } = renderHook(() => useKitchenSidebar(user, false, false));
 
     await waitFor(() => {
       expect(result.current.isSidebarHydrated).toBe(true);
@@ -92,7 +92,7 @@ describe("useChatSideBar", () => {
       email: "test@example.com",
     };
 
-    const { result } = renderHook(() => useChatSidebar(null, false, false));
+    const { result } = renderHook(() => useKitchenSidebar(null, false, false));
 
     await waitFor(() => {
       expect(result.current.isSidebarHydrated).toBe(true);
@@ -125,7 +125,7 @@ describe("useChatSideBar", () => {
       email: "test@example.com",
     };
 
-    const { result } = renderHook(() => useChatSidebar(user, false, false));
+    const { result } = renderHook(() => useKitchenSidebar(user, false, false));
 
     await waitFor(() => {
       expect(result.current.isSideBarOpen).toBe(false);

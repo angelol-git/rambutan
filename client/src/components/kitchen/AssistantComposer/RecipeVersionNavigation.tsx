@@ -2,14 +2,18 @@ import { memo, Dispatch, SetStateAction } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Recipe } from "../../../types/recipe";
 
-type ChatNavigationProps = {
+type RecipeVersionNavigationProps = {
   recipe: Recipe;
   recipeVersion: number;
   setRecipeVersion: Dispatch<SetStateAction<number>>;
 };
 
-const ChatNavigation = memo(
-  ({ recipe, recipeVersion, setRecipeVersion }: ChatNavigationProps) => {
+const RecipeVersionNavigation = memo(
+  ({
+    recipe,
+    recipeVersion,
+    setRecipeVersion,
+  }: RecipeVersionNavigationProps) => {
     const totalVersions = recipe?.versions?.length ?? 0;
 
     function handleNext(event: React.MouseEvent<HTMLButtonElement>) {
@@ -54,6 +58,6 @@ const ChatNavigation = memo(
   },
 );
 
-ChatNavigation.displayName = "ChatNavigation";
+RecipeVersionNavigation.displayName = "RecipeVersionNavigation";
 
-export default ChatNavigation;
+export default RecipeVersionNavigation;
