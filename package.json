@@ -2,11 +2,11 @@
   "name": "ai_recipe",
   "private": true,
   "scripts": {
+    "dev:client": "pnpm --dir client dev",
+    "dev:server": "pnpm --dir server dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
-  },
-  "devDependencies": {
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.7.4"
   }
 }

@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import bodyParser from "body-parser";
 import authRoutes from "./routes/auth.js";
 import recipeRoutes from "./routes/recipes.js";
 import kitchenRoutes from "./routes/kitchen.js";
@@ -27,7 +26,7 @@ const log = (message:string) => {
 
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/recipes", recipeRoutes);
