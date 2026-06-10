@@ -4,9 +4,14 @@
   "scripts": {
     "dev:client": "pnpm --dir client dev",
     "dev:server": "pnpm --dir server dev",
+    "migrate": "pnpm --dir server migrate",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0"
   }
 }
