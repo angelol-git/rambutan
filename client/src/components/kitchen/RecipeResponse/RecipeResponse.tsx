@@ -99,7 +99,7 @@ const RecipeResponse = memo(
               Ingredients
             </h3>
             <ul className="flex flex-col gap-2 pt-2">
-              {ingredients.map((item, index) => (
+              {ingredients.map((item) => (
                 <li key={item.id}>{renderIngredient(item)}</li>
               ))}
             </ul>
