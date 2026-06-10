@@ -3,7 +3,7 @@ import { Impit } from "impit";
 import TurndownService from "turndown";
 import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
-import { checkURL, saveURLContent } from "./dbService.js";
+import { checkURL, saveURLContent } from "./urlCacheService.js";
 import { normalizeUrl } from "../utils/urlValidator.js";
 
 const REMOVE_SELECTORS = `

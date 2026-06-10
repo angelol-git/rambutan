@@ -8,6 +8,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch server.ts",
+    "migrate": "tsx scripts/runMigrations.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "prestart": "npm run build",

@@ -50,9 +50,9 @@ const getSessionUser = (sid: string): Express.UserPayload | null => {
       `SELECT s.user_id, u.email
        FROM sessions s
        JOIN users u ON u.id = s.user_id
-       WHERE s.sid = ? AND s.expires > ?`,
+       WHERE s.sid = ? AND s.expires_at > ?`,
     )
-    .get(sid, Date.now()) as SessionUserRow | undefined;
+    .get(sid, new Date().toISOString()) as SessionUserRow | undefined;
 
   if (!user) {
     return null;
