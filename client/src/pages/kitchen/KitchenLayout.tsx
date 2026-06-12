@@ -4,15 +4,11 @@ import KitchenHeader from "../../components/kitchen/KitchenHeader/KitchenHeader.
 import DeleteRecipePortal from "../../components/delete/DeleteRecipePortal.js";
 import { useDeleteRecipe } from "../../hooks/useDeleteRecipe.js";
 import { useToast } from "../../hooks/useToast";
-import { useUser } from "../../hooks/useUser";
 import { useRecipes } from "../../hooks/useRecipes";
-import useIsMobile from "../../hooks/useIsMobile";
 
 const KitchenLayout = () => {
   const { id } = useParams();
-  const { user, logout, isLoading: isUserLoading } = useUser();
   const { recipes, isLoading } = useRecipes({ page: 1, pageSize: 1000 });
-  const isMobile = useIsMobile();
 
   const { showToast } = useToast();
   const recipe = useMemo(() => {
@@ -21,7 +17,7 @@ const KitchenLayout = () => {
   }, [recipes, id]);
 
   const [recipeVersion, setRecipeVersion] = useState<number>(0);
-  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const { deleteModal, openDeleteModal, closeDeleteModal, handleDelete } =
     useDeleteRecipe({
       getRedirectPath: ({ type, recipe }) => {
@@ -45,26 +41,14 @@ const KitchenLayout = () => {
       recipe,
       recipeVersion,
       setRecipeVersion,
-      isMobile,
       showToast,
       openDeleteModal,
-      isEditModalOpen,
-      setIsEditModalOpen,
+      isEditing,
+      setIsEditing,
       isLoading,
     }),
-    [
-      recipe,
-      recipeVersion,
-      setRecipeVersion,
-      isMobile,
-      showToast,
-      openDeleteModal,
-      isEditModalOpen,
-      setIsEditModalOpen,
-      isLoading,
-    ],
+    [recipe, recipeVersion, showToast, openDeleteModal, isEditing, isLoading],
   );
-
   // Reset recipeVersion when recipe changes
   useEffect(() => {
     if (recipe?.versions?.length) {
@@ -89,9 +73,7 @@ const KitchenLayout = () => {
         <KitchenHeader
           recipe={recipe}
           recipeVersion={recipeVersion}
-          setIsEditModalOpen={setIsEditModalOpen}
-          openDeleteModal={openDeleteModal}
-          isMobile={isMobile}
+          setIsEditing={setIsEditing}
         />
         <div className="min-h-0 flex-1 overflow-hidden">
           <Outlet context={contextValue} />

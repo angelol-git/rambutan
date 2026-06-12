@@ -1,31 +1,15 @@
-import { useRef, useState } from "react";
-import { CircleX, Share, Ellipsis, Trash2, SquarePen } from "lucide-react";
-import type { Recipe } from "../../../types/recipe";
 import { Dispatch, SetStateAction } from "react";
 
-type OpenDeleteModal = (
-  recipe: Recipe,
-  type: "version" | "all",
-  recipeVersion?: number | null,
-) => void;
-
-type KitchenOptionsProps = {
-  recipe: Recipe;
-  recipeVersion: number;
-  setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
-  openDeleteModal: OpenDeleteModal;
-};
-
 function KitchenOptions({
-  recipe,
-  recipeVersion,
-  setIsEditModalOpen,
-}: KitchenOptionsProps) {
+  setIsEditing,
+}: {
+  setIsEditing: Dispatch<SetStateAction<boolean>>;
+}) {
   return (
     <div className="flex gap-4 text-sm">
       <button
         onClick={() => {
-          setIsEditModalOpen(true);
+          setIsEditing(true);
         }}
         className="cursor-pointer underline"
       >

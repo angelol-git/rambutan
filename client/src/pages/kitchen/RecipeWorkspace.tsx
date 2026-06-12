@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router";
 import RecipeResponse from "../../components/kitchen/RecipeResponse/RecipeResponse.js";
 import RecipeVersionNavigation from "../../components/kitchen/AssistantComposer/RecipeVersionNavigation.js";
 import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
-import RecipeEditorModal from "../../components/kitchen/RecipeEditor/RecipeEditorModal.jsx";
+// import RecipeEditorModal from "../../components/kitchen/RecipeEditor/RecipeEditorModal.jsx";
 import RecipeTags from "../../components/kitchen/RecipeResponse/RecipeTags.jsx";
 import NotFound from "../NotFound.jsx";
 import { Recipe } from "../../types/recipe.js";
@@ -12,8 +12,8 @@ type KitchenOutletContext = {
   recipe: Recipe;
   recipeVersion: number;
   setRecipeVersion: Dispatch<SetStateAction<number>>;
-  isEditModalOpen: boolean;
-  setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
+  isEditing: boolean;
+  setIsEditing: Dispatch<SetStateAction<boolean>>;
   isLoading: boolean;
 };
 function RecipeWorkspace() {
@@ -21,8 +21,8 @@ function RecipeWorkspace() {
     recipe,
     recipeVersion,
     setRecipeVersion,
-    isEditModalOpen,
-    setIsEditModalOpen,
+    isEditing,
+    setIsEditing,
     isLoading,
   } = useOutletContext<KitchenOutletContext>();
 
@@ -81,13 +81,13 @@ function RecipeWorkspace() {
         </div>
       </div>
 
-      <RecipeEditorModal
+      {/* <RecipeEditorModal
         recipe={recipe}
         recipeVersion={recipeVersion}
         isEditModalOpen={isEditModalOpen}
         setIsEditModalOpen={setIsEditModalOpen}
         anchorRef={replyPanelRef}
-      />
+      /> */}
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
         <div

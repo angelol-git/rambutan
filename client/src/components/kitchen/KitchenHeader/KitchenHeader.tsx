@@ -4,26 +4,13 @@ import KitchenOptions from "./KitchenOptions";
 import { ArrowLeft } from "lucide-react";
 import type { Recipe } from "../../../types/recipe";
 
-type OpenDeleteModal = (
-  recipe: Recipe,
-  type: "version" | "all",
-  recipeVersion?: number | null,
-) => void;
-
 type KitchenHeaderProps = {
   recipe: Recipe | null;
   recipeVersion: number;
-  setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
-  openDeleteModal: OpenDeleteModal;
-  isMobile: boolean;
+  setIsEditing: Dispatch<SetStateAction<boolean>>;
 };
 
-const KitchenHeader = ({
-  recipe,
-  recipeVersion,
-  setIsEditModalOpen,
-  openDeleteModal,
-}: KitchenHeaderProps) => {
+const KitchenHeader = ({ recipe, setIsEditing }: KitchenHeaderProps) => {
   return (
     <div className="flex justify-center px-4 pt-4 md:pt-8">
       <div className="flex w-full max-w-screen-md flex-col gap-2 md:flex-row md:items-center md:gap-4">
@@ -36,12 +23,7 @@ const KitchenHeader = ({
           </Link>
           {recipe && (
             <div className="block md:hidden">
-              <KitchenOptions
-                recipe={recipe}
-                recipeVersion={recipeVersion}
-                setIsEditModalOpen={setIsEditModalOpen}
-                openDeleteModal={openDeleteModal}
-              />
+              <KitchenOptions setIsEditing={setIsEditing} />
             </div>
           )}
         </div>
@@ -51,12 +33,7 @@ const KitchenHeader = ({
           </h1>
           {recipe && (
             <div className="hidden md:block">
-              <KitchenOptions
-                recipe={recipe}
-                recipeVersion={recipeVersion}
-                setIsEditModalOpen={setIsEditModalOpen}
-                openDeleteModal={openDeleteModal}
-              />
+              <KitchenOptions setIsEditing={setIsEditing} />
             </div>
           )}
         </div>
