@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Check, Plus } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { useRecipeMutations } from "../../../hooks/useRecipes";
 import type { Recipe } from "../../../types/recipe";
 import type { DraftTag } from "../../../types/tag";
 import TagChip from "../../tags/TagChip";
 
-type RecipeTagsProps = {
+type RecipeContentTagsProps = {
   recipe: Recipe | null;
 };
 
-function RecipeTags({ recipe }: RecipeTagsProps) {
+function RecipeContentTags({ recipe }: RecipeContentTagsProps) {
   const newTagRef = useRef<HTMLInputElement | null>(null);
   const { addRecipeTag } = useRecipeMutations();
   const tags = recipe?.tags || [];
@@ -102,4 +102,4 @@ function RecipeTags({ recipe }: RecipeTagsProps) {
   );
 }
 
-export default RecipeTags;
+export default RecipeContentTags;

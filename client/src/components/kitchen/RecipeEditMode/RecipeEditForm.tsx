@@ -156,7 +156,7 @@ const RecipeEditForm = memo(
             )}
           </div>
         )}
-        <RecipePromptModal
+        <RecipeContentPromptModal
           isOpen={isPromptModalOpen}
           onClose={() => setIsPromptModalOpen(false)}
           sourcePrompt={source_prompt || ""}

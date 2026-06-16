@@ -2,9 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import Markdown from "react-markdown";
 import { X } from "lucide-react";
-import RecipeQuestionInput from "./RecipeQuestionInput";
+import RecipeInput from "./RecipeInput";
 
-function RecipeQuestionsModal({
+function RecipeInputModal({
   isQuestionsModalOpen,
   setIsQuestionsModalOpen,
   askMessages,
@@ -93,7 +93,7 @@ function RecipeQuestionsModal({
             );
           })}
         </div>
-        <RecipeQuestionInput
+        <RecipeInput
           askMessage={askMessage}
           setAskMessage={setAskMessage}
           sendAskMessage={sendAskMessage}
@@ -105,4 +105,4 @@ function RecipeQuestionsModal({
   );
 }
 
-export default RecipeQuestionsModal;
+export default RecipeInputModal;

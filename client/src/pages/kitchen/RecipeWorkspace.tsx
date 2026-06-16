@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router";
 import type { OpenDeleteModal } from "../../hooks/useDeleteRecipe.js";
-import RecipeResponse from "../../components/kitchen/RecipeResponse/RecipeResponse.js";
+import RecipeContent from "../../components/kitchen/RecipeResponse/RecipeContent.js";
 import RecipeVersionNavigation from "../../components/kitchen/AssistantComposer/RecipeVersionNavigation.js";
 import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
 import RecipeEditForm from "../../components/kitchen/RecipeEditMode/RecipeEditForm.jsx";
-import RecipeTags from "../../components/kitchen/RecipeResponse/RecipeTags.jsx";
+import RecipeContentTags from "../../components/kitchen/RecipeResponse/RecipeContentTags.jsx";
 import NotFound from "../NotFound.jsx";
 import { Recipe } from "../../types/recipe.js";
 
@@ -83,8 +83,8 @@ function RecipeWorkspace() {
             className="mx-auto w-full max-w-screen-md px-4 pt-2"
             style={{ paddingBottom: `${composerHeight + 16}px` }}
           >
-            <RecipeTags recipe={recipe} />
-            <RecipeResponse
+            <RecipeContentTags recipe={recipe} />
+            <RecipeContent
               recipe={recipe}
               recipeVersion={recipeVersion}
               modalAnchorRef={replyPanelRef}

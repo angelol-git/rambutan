@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { ArrowUp, LoaderCircle } from "lucide-react";
 
-function RecipeQuestionInput({
+function RecipeInput({
   askMessage,
   setAskMessage,
   sendAskMessage,
@@ -56,4 +56,4 @@ function RecipeQuestionInput({
   );
 }
 
-export default RecipeQuestionInput;
+export default RecipeInput;

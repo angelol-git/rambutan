@@ -4,19 +4,19 @@ import { Copy } from "lucide-react";
 import { useToast } from "../../../hooks/useToast";
 import useModalAnchor from "../../../hooks/useModalAnchor";
 
-type RecipePromptModalProps = {
+type RecipeContentPromptModalProps = {
   isOpen: boolean;
   onClose: () => void;
   sourcePrompt: string;
   anchorRef: RefObject<HTMLDivElement | null>;
 };
 
-function RecipePromptModal({
+function RecipeContentPromptModal({
   isOpen,
   onClose,
   sourcePrompt,
   anchorRef,
-}: RecipePromptModalProps) {
+}: RecipeContentPromptModalProps) {
   const { showToast } = useToast();
   const anchorStyle = useModalAnchor(anchorRef, isOpen);
 
@@ -85,4 +85,4 @@ function RecipePromptModal({
   );
 }
 
-export default RecipePromptModal;
+export default RecipeContentPromptModal;

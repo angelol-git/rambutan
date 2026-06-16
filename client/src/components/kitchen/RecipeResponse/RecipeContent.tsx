@@ -1,0 +1,138 @@
+import { useEffect, useState, memo, type RefObject } from "react";
+import RecipeContentPromptModal from "./RecipeContentPromptModal";
+import RecipeContentDetailsBar from "./RecipeContentDetailsBar";
+import RecipeContentFooter from "./RecipeContentFooter";
+import RecipeContentIngredients from "./RecipeContentIngredients";
+import RecipeContentInstructions from "./RecipeContentInstructions";
+import type { Recipe, RecipeDetails, RecipeIngredient, RecipeInstruction } from "../../../types/recipe";
+import { useRecipeMutations } from "../../../hooks/useRecipes";
+
+const EMPTY_RECIPE_DETAILS: RecipeDetails = {
+  calories: null,
+  servings: null,
+  total_time: null,
+};
+
+type RecipeContentProps = {
+  recipe: Recipe;
+  recipeVersion: number;
+  modalAnchorRef: RefObject<HTMLDivElement | null>;
+};
+
+const RecipeContent = memo(
+  ({ recipe, recipeVersion, modalAnchorRef }: RecipeContentProps) => {
+    const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+    const { updateRecipe } = useRecipeMutations();
+    const current = recipe?.versions?.[recipeVersion];
+    const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
+    const [instructions, setInstructions] = useState<RecipeInstruction[]>([]);
+
+    const {
+      recipeDetails = EMPTY_RECIPE_DETAILS,
+      description = "",
+      source_prompt = "",
+    } = current ?? {};
+
+    useEffect(() => {
+      setIngredients(current?.ingredients ?? []);
+      setInstructions(current?.instructions ?? []);
+    }, [current?.id, current?.ingredients, current?.instructions]);
+
+    if (!current) return null;
+
+    function persistRecipeItems(
+      nextIngredients: RecipeIngredient[],
+      nextInstructions: RecipeInstruction[],
+    ) {
+      updateRecipe({
+        id: current.id,
+        recipe_id: recipe.id,
+        title: recipe.title,
+        tags: recipe.tags,
+        description,
+        ingredients: nextIngredients,
+        instructions: nextInstructions,
+        recipeDetails,
+        source_prompt,
+      });
+    }
+
+    function toggleIngredientCompletion(ingredientId: string) {
+      const nextIngredients = ingredients.map((item) =>
+        item.id === ingredientId
+          ? { ...item, completed: !item.completed }
+          : item,
+      );
+
+      setIngredients(nextIngredients);
+      persistRecipeItems(nextIngredients, instructions);
+    }
+
+    function toggleInstructionCompletion(instructionId: string) {
+      const nextInstructions = instructions.map((item) =>
+        item.id === instructionId
+          ? { ...item, completed: !item.completed }
+          : item,
+      );
+
+      setInstructions(nextInstructions);
+      persistRecipeItems(ingredients, nextInstructions);
+    }
+
+    function resetIngredientCompletion() {
+      const nextIngredients = ingredients.map((item) => ({
+        ...item,
+        completed: false,
+      }));
+
+      setIngredients(nextIngredients);
+      persistRecipeItems(nextIngredients, instructions);
+    }
+
+    function resetInstructionCompletion() {
+      const nextInstructions = instructions.map((item) => ({
+        ...item,
+        completed: false,
+      }));
+
+      setInstructions(nextInstructions);
+      persistRecipeItems(ingredients, nextInstructions);
+    }
+
+    return (
+      <div role="log" aria-live="polite" className="flex flex-col gap-2">
+        <h1 className="font-lora line-clamp-2 max-w-screen-md text-3xl leading-snug font-semibold md:text-4xl">
+          {recipe?.title}
+        </h1>
+        <RecipeContentDetailsBar recipeDetails={recipeDetails} />
+        <p className="mb-4 break-inside-avoid">{description}</p>
+        <RecipeContentIngredients
+          ingredients={ingredients}
+          onToggleCompletion={toggleIngredientCompletion}
+          onResetCompletion={resetIngredientCompletion}
+        />
+        <RecipeContentInstructions
+          instructions={instructions}
+          onToggleCompletion={toggleInstructionCompletion}
+          onResetCompletion={resetInstructionCompletion}
+        />
+        <RecipeContentFooter
+          sourcePrompt={source_prompt}
+          recipeVersion={recipeVersion}
+          versionCount={recipe.versions.length}
+          onViewPrompt={() => setIsPromptModalOpen(true)}
+        />
+        <RecipeContentPromptModal
+          isOpen={isPromptModalOpen}
+          onClose={() => setIsPromptModalOpen(false)}
+          sourcePrompt={source_prompt || ""}
+          anchorRef={modalAnchorRef}
+        />
+      </div>
+    );
+  },
+);
+
+RecipeContent.displayName = "RecipeContent";
+
+export default RecipeContent;
