@@ -1,6 +1,6 @@
-# <img src="https://github.com/angelol-git/recipe-manager/blob/main/.github/logo.png?raw=true" width="32" /> Recipe Manager
+# <img src="https://github.com/angelol-git/rambutan/blob/main/.github/logo.png?raw=true" width="32" /> Rambutan
 
-AI-powered recipe app for importing, organizing, editing, and generating recipes.
+Recipe manager app for importing, organizing, editing, and generating recipes.
 
 ## Features
 
@@ -20,8 +20,8 @@ AI-powered recipe app for importing, organizing, editing, and generating recipes
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/angelol-git/recipe-manager.git
-cd recipe-manager
+git clone https://github.com/angelol-git/rambutan.git
+cd rambutan
 ```
 
 2. Install dependencies:
