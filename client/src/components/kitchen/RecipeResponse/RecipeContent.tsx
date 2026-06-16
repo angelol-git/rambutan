@@ -4,7 +4,12 @@ import RecipeContentDetailsBar from "./RecipeContentDetailsBar";
 import RecipeContentFooter from "./RecipeContentFooter";
 import RecipeContentIngredients from "./RecipeContentIngredients";
 import RecipeContentInstructions from "./RecipeContentInstructions";
-import type { Recipe, RecipeDetails, RecipeIngredient, RecipeInstruction } from "../../../types/recipe";
+import type {
+  Recipe,
+  RecipeDetails,
+  RecipeIngredient,
+  RecipeInstruction,
+} from "../../../types/recipe";
 import { useRecipeMutations } from "../../../hooks/useRecipes";
 
 const EMPTY_RECIPE_DETAILS: RecipeDetails = {
@@ -101,11 +106,11 @@ const RecipeContent = memo(
 
     return (
       <div role="log" aria-live="polite" className="flex flex-col gap-2">
-        <h1 className="font-lora line-clamp-2 max-w-screen-md text-3xl leading-snug font-semibold md:text-4xl">
+        <h1 className="font-lora line-clamp-2 max-w-screen-md text-3xl leading-snug font-semibold wrap-break-word md:text-4xl">
           {recipe?.title}
         </h1>
         <RecipeContentDetailsBar recipeDetails={recipeDetails} />
-        <p className="mb-4 break-inside-avoid">{description}</p>
+        <p className="mb-4 wrap-break-word">{description}</p>
         <RecipeContentIngredients
           ingredients={ingredients}
           onToggleCompletion={toggleIngredientCompletion}

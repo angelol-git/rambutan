@@ -42,7 +42,10 @@ function RecipeContentInstructions({
             >
               <div className="flex gap-2">
                 <span className="font-lora font-semibold">{index + 1}.</span>
-                <RoughStrike completed={item.completed} className="min-w-0 flex-1">
+                <RoughStrike
+                  completed={item.completed}
+                  className="min-w-0 flex-1 wrap-break-word"
+                >
                   {item.raw_text}
                 </RoughStrike>
               </div>

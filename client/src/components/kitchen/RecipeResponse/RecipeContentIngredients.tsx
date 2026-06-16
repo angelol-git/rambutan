@@ -20,7 +20,7 @@ function renderIngredient(ingredient: RecipeIngredient) {
     <RoughStrike
       completed={ingredient.completed}
       singleLine
-      className="inline-flex w-fit items-center gap-1 self-start justify-self-start align-top"
+      className="inline-flex max-w-full items-center gap-1 justify-self-start break-words"
     >
       {hasPrimaryMeasurement && (
         <span>
@@ -43,12 +43,12 @@ function renderIngredient(ingredient: RecipeIngredient) {
   );
 
   const textCell = (
-    <div className="relative min-w-0 self-start">
+    <div className="relative min-w-0 pl-5">
       {ingredient.completed && (
         <RoughStrike
           completed
           singleLine
-          className="absolute top-[0.7em] left-0 -translate-x-full -translate-y-1/2"
+          className="text-secondary absolute top-[0.7em] left-0 -translate-y-1/2"
         >
           <span aria-hidden className="block w-4" />
         </RoughStrike>
@@ -56,10 +56,10 @@ function renderIngredient(ingredient: RecipeIngredient) {
       <RoughStrike
         completed={ingredient.completed}
         firstLineOnly
-        className="inline-block align-top"
+        className="inline-block max-w-full min-w-0 break-words"
       >
         {ingredient.ingredient_name && (
-          <span>
+          <span className="break-words">
             {ingredient.ingredient_name}{" "}
             {ingredient.note && (
               <span className="text-secondary text-xs">
@@ -98,7 +98,7 @@ function RecipeContentIngredients({
           </button>
         )}
       </div>
-      <ul className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 pt-2">
+      <ul className="grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)] gap-x-4 gap-y-2 pt-2">
         {ingredients.map((item) => {
           const { measurementCell, textCell } = renderIngredient(item);
 
@@ -108,7 +108,7 @@ function RecipeContentIngredients({
                 type="button"
                 onClick={() => onToggleCompletion(item.id)}
                 aria-pressed={item.completed}
-                className="hover:bg-base-hover col-span-2 grid cursor-pointer grid-cols-subgrid items-start rounded-lg px-1 text-left transition-colors duration-150"
+                className="hover:bg-base-hover col-span-2 grid min-w-0 cursor-pointer grid-cols-subgrid items-start rounded-lg px-1 text-left transition-colors duration-150"
               >
                 {measurementCell}
                 {textCell}

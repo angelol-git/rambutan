@@ -177,7 +177,7 @@ export function RoughStrike({
       {children}
       <svg
         ref={svgRef}
-        className="pointer-events-none absolute top-0 left-0 overflow-visible"
+        className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden"
       />
     </span>
   );
