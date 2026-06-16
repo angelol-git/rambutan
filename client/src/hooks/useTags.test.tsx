@@ -5,6 +5,7 @@ import type { Tag } from "../types/tag";
 import type { User } from "../types/user";
 import { createQueryClientWrapper } from "../test/queryClient";
 
+const SELECTED_TAGS_STORAGE_KEY_PREFIX = "rambutan-selected-tags";
 const dinnerTag: Tag = { id: 1, name: "Dinner", color: "#ff0000" };
 const quickTag: Tag = { id: 2, name: "Quick", color: "#00ff00" };
 
@@ -69,7 +70,7 @@ describe("useTags", () => {
     };
 
     localStorage.setItem(
-      `recipe-selected-tags-${user.id}`,
+      `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
       JSON.stringify([dinnerTag]),
     );
 
@@ -87,7 +88,7 @@ describe("useTags", () => {
 
   it("removes stored selected tags that no longer exist in recipes", async () => {
     localStorage.setItem(
-      "recipe-selected-tags-guest",
+      `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
       JSON.stringify([dinnerTag]),
     );
 

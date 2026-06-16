@@ -5,19 +5,21 @@ import {
 import type { Recipe, UpdateRecipeInput } from "../types/recipe";
 import type { DraftTag, EditableTagUpdate, Tag } from "../types/tag";
 
+const GUEST_RECIPES_STORAGE_KEY = "rambutan-guest-recipes";
+
 function generateId(): string {
   return crypto.randomUUID();
 }
 
 export function getLocalRecipes(): Recipe[] {
-  const data = localStorage.getItem("recipe-guest-recipes");
+  const data = localStorage.getItem(GUEST_RECIPES_STORAGE_KEY);
   if (!data) return [];
 
   try {
     const parsed: unknown = JSON.parse(data);
     if (!Array.isArray(parsed)) {
       console.warn("LocalStorage recipes is not an array, clearing");
-      localStorage.removeItem("recipe-guest-recipes");
+      localStorage.removeItem(GUEST_RECIPES_STORAGE_KEY);
       return [];
     }
 
@@ -42,13 +44,13 @@ export function getLocalRecipes(): Recipe[] {
       return rightTimestamp - leftTimestamp;
     });
     localStorage.setItem(
-      "recipe-guest-recipes",
+      GUEST_RECIPES_STORAGE_KEY,
       JSON.stringify(normalizedRecipes),
     );
     return normalizedRecipes;
   } catch (error) {
     console.error("Failed to parse localStorage recipes:", error);
-    localStorage.removeItem("recipe-guest-recipes");
+    localStorage.removeItem(GUEST_RECIPES_STORAGE_KEY);
     return [];
   }
 }
@@ -57,7 +59,7 @@ export function addLocalRecipe(recipe: Recipe): Recipe {
   const recipes = getLocalRecipes();
   const normalizedRecipe = normalizeStoredRecipe(recipe);
   recipes.push(normalizedRecipe);
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   return normalizedRecipe;
 }
 
@@ -69,7 +71,7 @@ export function addLocalRecipeVersion(recipe: Recipe): Recipe {
   if (existingIndex !== -1 && normalizedRecipe.versions.length > 0) {
     const newVersion = normalizedRecipe.versions[0];
     recipes[existingIndex].versions.push(newVersion);
-    localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+    localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   }
 
   return normalizedRecipe;
@@ -77,7 +79,7 @@ export function addLocalRecipeVersion(recipe: Recipe): Recipe {
 
 export function deleteLocalRecipeAll(id: string): void {
   const recipes = getLocalRecipes().filter((r) => r.id !== id);
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
 }
 
 export function deleteLocalRecipeVersion(
@@ -91,7 +93,7 @@ export function deleteLocalRecipeVersion(
     recipes[existingIndex].versions = recipes[existingIndex].versions.filter(
       (v) => v.id !== recipeVersionId,
     );
-    localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+    localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   }
 }
 
@@ -122,7 +124,7 @@ export function updateLocalRecipe(recipe: UpdateRecipeInput): void {
     tags: recipe.tags || [],
   });
 
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
 }
 
 export function addLocalRecipeTag(
@@ -166,7 +168,7 @@ export function addLocalRecipeTag(
   }
 
   recipes[recipeIndex].tags.push(tagToUse);
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
 
   return { success: true, tag: tagToUse };
 }
@@ -180,7 +182,7 @@ export function deleteLocalTagsAll(tagIds: Array<Tag["id"]>): {
     recipe.tags = recipe.tags.filter((t) => !tagIds.includes(t.id));
   });
 
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   return { success: true };
 }
 
@@ -203,6 +205,6 @@ export function editLocalTagsAll(updatedTags: EditableTagUpdate[]): {
     });
   });
 
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   return { success: true };
 }

@@ -14,6 +14,7 @@ import type { Recipe, RecipeVersion } from "../types/recipe";
 import type { Tag } from "../types/tag";
 
 const CREATED_AT = "2026-04-10T23:49:41.354Z";
+const GUEST_RECIPES_STORAGE_KEY = "rambutan-guest-recipes";
 
 function makeTag(overrides: Partial<Tag> = {}): Tag {
   return {
@@ -56,7 +57,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
 }
 
 function seedGuestRecipes(recipes: Recipe[]) {
-  localStorage.setItem("recipe-guest-recipes", JSON.stringify(recipes));
+  localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
 }
 
 describe("getLocalRecipes", () => {
@@ -97,26 +98,26 @@ describe("getLocalRecipes", () => {
   it("clears localStorage when stored JSON is invalid", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    localStorage.setItem("recipe-guest-recipes", "{invalid-json}");
+    localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, "{invalid-json}");
 
     const recipes = getLocalRecipes();
 
     expect(recipes).toEqual([]);
-    expect(localStorage.getItem("recipe-guest-recipes")).toBeNull();
+    expect(localStorage.getItem(GUEST_RECIPES_STORAGE_KEY)).toBeNull();
 
     vi.restoreAllMocks();
   });
 
   it("clears localStorage when the stored data is not an array", () => {
     localStorage.setItem(
-      "recipe-guest-recipes",
+      GUEST_RECIPES_STORAGE_KEY,
       JSON.stringify({ id: "recipe-1" }),
     );
 
     const recipes = getLocalRecipes();
 
     expect(recipes).toEqual([]);
-    expect(localStorage.getItem("recipe-guest-recipes")).toBeNull();
+    expect(localStorage.getItem(GUEST_RECIPES_STORAGE_KEY)).toBeNull();
   });
 });
 
@@ -383,7 +384,7 @@ describe("editLocalTagsAll", () => {
 describe("deleteLocalTagsAll", () => {
   it("deletes all tags in recipe", () => {
     localStorage.setItem(
-      "recipe-guest-recipes",
+      GUEST_RECIPES_STORAGE_KEY,
       JSON.stringify([
         {
           id: "recipe-1",

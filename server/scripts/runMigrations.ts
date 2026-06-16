@@ -6,7 +6,7 @@ type AppliedMigrationRow = {
   filename: string;
 };
 
-const db = new Database("recipes.db");
+const db = new Database("rambutan.db");
 const migrationsDir = path.resolve("migrations");
 
 db.pragma("foreign_keys = ON");
@@ -32,9 +32,7 @@ const appliedRows = db
   .prepare("SELECT filename FROM schema_migrations")
   .all() as AppliedMigrationRow[];
 
-const appliedFilenames = new Set(
-  appliedRows.map((row) => row.filename),
-);
+const appliedFilenames = new Set(appliedRows.map((row) => row.filename));
 
 for (const filename of migrationFiles) {
   if (appliedFilenames.has(filename)) {
@@ -45,9 +43,9 @@ for (const filename of migrationFiles) {
 
   const applyMigration = db.transaction(() => {
     db.exec(sql);
-    db.prepare(
-      "INSERT INTO schema_migrations (filename) VALUES (?)",
-    ).run(filename);
+    db.prepare("INSERT INTO schema_migrations (filename) VALUES (?)").run(
+      filename,
+    );
   });
 
   applyMigration();

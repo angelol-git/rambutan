@@ -6,6 +6,8 @@ import type { Tag, EditableTagUpdate } from "../types/tag";
 import type { User } from "../types/user";
 import type { Recipe } from "../types/recipe";
 
+const SELECTED_TAGS_STORAGE_KEY_PREFIX = "rambutan-selected-tags";
+
 export function useTags(user: User | null, recipes: Recipe[] = []) {
   const queryClient = useQueryClient();
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -14,7 +16,9 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
     if (!user?.id) {
       // For guest users, try to load from localStorage
       try {
-        const stored = localStorage.getItem("recipe-selected-tags-guest");
+        const stored = localStorage.getItem(
+          `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
+        );
         if (stored) {
           setSelectedTags(JSON.parse(stored));
         } else {
@@ -28,7 +32,9 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
     }
 
     try {
-      const stored = localStorage.getItem(`recipe-selected-tags-${user.id}`);
+      const stored = localStorage.getItem(
+        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
+      );
       if (stored) {
         setSelectedTags(JSON.parse(stored));
       }
@@ -40,13 +46,13 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
   useEffect(() => {
     if (user?.id) {
       localStorage.setItem(
-        `recipe-selected-tags-${user.id}`,
+        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
         JSON.stringify(selectedTags),
       );
     } else {
       // Save guest user selected tags
       localStorage.setItem(
-        "recipe-selected-tags-guest",
+        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
         JSON.stringify(selectedTags),
       );
     }
