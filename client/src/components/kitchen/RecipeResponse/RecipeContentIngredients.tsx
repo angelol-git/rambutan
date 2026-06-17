@@ -98,7 +98,7 @@ function RecipeContentIngredients({
           </button>
         )}
       </div>
-      <ul className="grid-cols[max-content_1fr] grid gap-2 gap-x-4 pt-2">
+      <ul className="grid grid-cols-[max-content_1fr] gap-2 gap-x-4 pt-2">
         {ingredients.map((item) => {
           const { measurementCell, textCell } = renderIngredient(item);
 

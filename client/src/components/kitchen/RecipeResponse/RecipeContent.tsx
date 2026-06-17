@@ -43,6 +43,7 @@ const RecipeContent = memo(
 
     if (!current) return null;
 
+    //TOD DO: Completion should be saved to local storage
     function toggleIngredientCompletion(ingredientId: string) {
       const nextIngredients = ingredients.map((item) =>
         item.id === ingredientId
