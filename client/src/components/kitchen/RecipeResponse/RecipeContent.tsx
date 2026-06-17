@@ -10,7 +10,6 @@ import type {
   RecipeIngredient,
   RecipeInstruction,
 } from "../../../types/recipe";
-import { useRecipeMutations } from "../../../hooks/useRecipes";
 
 const EMPTY_RECIPE_DETAILS: RecipeDetails = {
   calories: null,
@@ -27,7 +26,6 @@ type RecipeContentProps = {
 const RecipeContent = memo(
   ({ recipe, recipeVersion, modalAnchorRef }: RecipeContentProps) => {
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-    const { updateRecipe } = useRecipeMutations();
     const current = recipe?.versions?.[recipeVersion];
     const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
     const [instructions, setInstructions] = useState<RecipeInstruction[]>([]);
@@ -45,23 +43,6 @@ const RecipeContent = memo(
 
     if (!current) return null;
 
-    function persistRecipeItems(
-      nextIngredients: RecipeIngredient[],
-      nextInstructions: RecipeInstruction[],
-    ) {
-      updateRecipe({
-        id: current.id,
-        recipe_id: recipe.id,
-        title: recipe.title,
-        tags: recipe.tags,
-        description,
-        ingredients: nextIngredients,
-        instructions: nextInstructions,
-        recipeDetails,
-        source_prompt,
-      });
-    }
-
     function toggleIngredientCompletion(ingredientId: string) {
       const nextIngredients = ingredients.map((item) =>
         item.id === ingredientId
@@ -70,7 +51,6 @@ const RecipeContent = memo(
       );
 
       setIngredients(nextIngredients);
-      persistRecipeItems(nextIngredients, instructions);
     }
 
     function toggleInstructionCompletion(instructionId: string) {
@@ -81,7 +61,6 @@ const RecipeContent = memo(
       );
 
       setInstructions(nextInstructions);
-      persistRecipeItems(ingredients, nextInstructions);
     }
 
     function resetIngredientCompletion() {
@@ -91,7 +70,6 @@ const RecipeContent = memo(
       }));
 
       setIngredients(nextIngredients);
-      persistRecipeItems(nextIngredients, instructions);
     }
 
     function resetInstructionCompletion() {
@@ -101,7 +79,6 @@ const RecipeContent = memo(
       }));
 
       setInstructions(nextInstructions);
-      persistRecipeItems(ingredients, nextInstructions);
     }
 
     return (

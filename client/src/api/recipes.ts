@@ -9,7 +9,6 @@ type FetchRecipesParams = {
   pageSize: number;
   selectedTagIds?: Array<string | number>;
 };
-
 export type PaginatedRecipesResponse = {
   items: Recipe[];
   page: number;

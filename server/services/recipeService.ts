@@ -405,7 +405,6 @@ function getVersionIngredientsMap(
   const rows = db
     .prepare(
       `SELECT id, recipe_version_id, position, raw_text, ingredient_name,
-              completed,
               quantity_value, quantity_text, unit,
               alternate_quantity_value, alternate_quantity_text, alternate_unit,
               note, is_optional
@@ -421,7 +420,7 @@ function getVersionIngredientsMap(
       id: row.id,
       position: row.position,
       raw_text: row.raw_text,
-      completed: Boolean(row.completed),
+      completed: false,
       ingredient_name: row.ingredient_name,
       quantity_value: row.quantity_value ?? null,
       quantity_text: row.quantity_text ?? null,
@@ -450,7 +449,6 @@ function getVersionInstructionsMap(
   const rows = db
     .prepare(
       `SELECT id, recipe_version_id, position, raw_text
-              , completed
        FROM recipe_version_steps
        WHERE recipe_version_id IN (${versionIds.map(() => "?").join(", ")})
        ORDER BY recipe_version_id ASC, position ASC`,
@@ -463,7 +461,7 @@ function getVersionInstructionsMap(
       id: row.id,
       position: row.position,
       raw_text: row.raw_text,
-      completed: Boolean(row.completed),
+      completed: false,
     });
     instructionsMap.set(row.recipe_version_id, instructions);
   }
@@ -559,12 +557,9 @@ function normalizeIngredientForStorage(
   ingredient:
     | UpdateRecipeInput["ingredients"][number]
     | ParsedAiRecipe["ingredients"][number],
-): Omit<RecipeIngredient, "id" | "position"> {
-  const completed = "completed" in ingredient ? ingredient.completed : false;
-
+): Omit<RecipeIngredient, "id" | "position" | "completed"> {
   return {
     raw_text: ingredient.raw_text.trim(),
-    completed,
     ingredient_name: ingredient.ingredient_name.trim(),
     quantity_value: ingredient.quantity_value ?? null,
     quantity_text: ingredient.quantity_text ?? null,
@@ -590,7 +585,6 @@ function insertIngredientRows(
        recipe_version_id,
        position,
        raw_text,
-       completed,
        ingredient_name,
        quantity_value,
        quantity_text,
@@ -600,17 +594,21 @@ function insertIngredientRows(
        alternate_unit,
        note,
        is_optional
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
 
   for (const [index, ingredient] of ingredients.entries()) {
     const normalized = normalizeIngredientForStorage(ingredient);
+    const ingredientId =
+      "id" in ingredient && typeof ingredient.id === "string"
+        ? ingredient.id
+        : uuidv7();
+
     insertIngredient.run(
-      uuidv7(),
+      ingredientId,
       recipeVersionId,
       index + 1,
       normalized.raw_text,
-      normalized.completed ? 1 : 0,
       normalized.ingredient_name,
       normalized.quantity_value,
       normalized.quantity_text,
@@ -628,12 +626,9 @@ function normalizeInstructionForStorage(
   instruction:
     | UpdateRecipeInput["instructions"][number]
     | ParsedAiRecipe["instructions"][number],
-): Omit<RecipeInstruction, "id" | "position"> {
-  const completed = "completed" in instruction ? instruction.completed : false;
-
+): Omit<RecipeInstruction, "id" | "position" | "completed"> {
   return {
     raw_text: instruction.raw_text.trim(),
-    completed,
   };
 }
 
@@ -650,18 +645,21 @@ function insertInstructionRows(
        recipe_version_id,
        position,
        raw_text
-       , completed
-     ) VALUES (?, ?, ?, ?, ?)`,
+     ) VALUES (?, ?, ?, ?)`,
   );
 
   for (const [index, instruction] of instructions.entries()) {
     const normalized = normalizeInstructionForStorage(instruction);
+    const instructionId =
+      "id" in instruction && typeof instruction.id === "string"
+        ? instruction.id
+        : uuidv7();
+
     insertInstruction.run(
-      uuidv7(),
+      instructionId,
       recipeVersionId,
       index + 1,
       normalized.raw_text,
-      normalized.completed ? 1 : 0,
     );
   }
 }
