@@ -3,7 +3,7 @@ import type { OpenDeleteModal } from "../../../hooks/useDeleteRecipe";
 import { useDraftRecipe } from "../../../hooks/useDraftRecipe";
 import type { Recipe, RecipeDetails } from "../../../types/recipe";
 import RecipeEditTitle from "./RecipeEditTitle";
-import RecipeEditDetailsBar from "./RecipeEditDetailsBar";
+import RecipeEditDetails from "./RecipeEditDetails";
 import RecipeEditDescription from "./RecipeEditDescription";
 import RecipeEditIngredients from "./RecipeEditIngredients";
 import RecipeEditInstructions from "./RecipeEditInstructions";
@@ -104,7 +104,7 @@ const RecipeEditForm = memo(
           recipeTitle={recipeTitle}
           handleDraftString={handleDraftString}
         />
-        <RecipeEditDetailsBar
+        <RecipeEditDetails
           recipeDetails={recipeDetails}
           handleDraftDetail={handleDraftDetail}
         />

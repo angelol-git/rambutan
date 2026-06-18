@@ -3,7 +3,6 @@ import { RoughStrike } from "../../../utils/RoughStrike";
 
 type RecipeContentIngredientsProps = {
   ingredients: RecipeIngredient[];
-  // eslint-disable-next-line no-unused-vars
   onToggleCompletion(ingredientId: string): void;
   onResetCompletion: () => void;
 };

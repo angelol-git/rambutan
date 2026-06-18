@@ -37,18 +37,16 @@ function EditRecipeDetails({
       <h3 className="font-lora text-secondary text-lg font-medium tracking-wide">
         Recipe Details
       </h3>
-      <div>
-        <div className="border-crust bg-mantle/50 flex flex-col gap-4 rounded-xl border p-4">
-          {DETAIL_FIELDS.map(({ field, label }) => (
-            <DetailItem
-              key={field}
-              field={field}
-              label={label}
-              value={recipeDetails?.[field]}
-              handleDraftDetail={handleDraftDetail}
-            />
-          ))}
-        </div>
+      <div className="border-crust bg-mantle/50 flex flex-col gap-4 rounded-xl border p-4">
+        {DETAIL_FIELDS.map(({ field, label }) => (
+          <DetailItem
+            key={field}
+            field={field}
+            label={label}
+            value={recipeDetails?.[field]}
+            handleDraftDetail={handleDraftDetail}
+          />
+        ))}
       </div>
     </section>
   );

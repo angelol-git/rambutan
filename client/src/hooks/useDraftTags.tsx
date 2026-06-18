@@ -8,22 +8,22 @@ type ColorString = {
 
 type UseDraftTagProps = {
   tags: Tag[];
-  isEditTags: boolean;
+  isEditingTags: boolean;
   setTagsToBeDeleted: Dispatch<SetStateAction<Tag[]>>;
 };
 
 function useDraftTags({
   tags,
-  isEditTags,
+  isEditingTags,
   setTagsToBeDeleted,
 }: UseDraftTagProps) {
   const [draftTags, setDraftTags] = useState<Tag[]>([]);
 
   useEffect(() => {
-    if (isEditTags && tags) {
+    if (isEditingTags && tags) {
       setDraftTags(tags);
     }
-  }, [tags, isEditTags]);
+  }, [tags, isEditingTags]);
 
   function handleEditDraftTagName(newName: string, tagId: Tag["id"]) {
     setDraftTags((prev) => {

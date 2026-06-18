@@ -1,6 +1,6 @@
 import type { RecipeDetails, RecipeDetailValue } from "../../../types/recipe";
 
-type RecipeContentDetailsBarProps = {
+type RecipeContentDetailsProps = {
   recipeDetails: RecipeDetails;
 };
 
@@ -9,9 +9,9 @@ function formatApproxValue(value: RecipeDetailValue) {
   return `${value}`;
 }
 
-function RecipeContentDetailsBar({
+function RecipeContentDetails({
   recipeDetails,
-}: RecipeContentDetailsBarProps) {
+}: RecipeContentDetailsProps) {
   return (
     <div
       role="group"
@@ -36,4 +36,4 @@ function RecipeContentDetailsBar({
   );
 }
 
-export default RecipeContentDetailsBar;
+export default RecipeContentDetails;

@@ -24,14 +24,14 @@ function HomeTags({
   editTagsAll,
 }: HomeTagsProps) {
   const [tagsToBeDeleted, setTagsToBeDeleted] = useState<Tag[]>([]);
-  const [isEditTags, setIsEditTags] = useState(false);
+  const [isEditingTags, setIsEditingTags] = useState(false);
   const [optimisticTags, setOptimisticTags] = useState<Tag[] | null>(null);
   const {
     draftTags,
     handleDraftTagDelete,
     handleEditDraftTagName,
     handleEditDraftTagColor,
-  } = useDraftTags({ tags, isEditTags, setTagsToBeDeleted });
+  } = useDraftTags({ tags, isEditingTags, setTagsToBeDeleted });
   const visibleTags = optimisticTags ?? tags;
 
   useEffect(() => {
@@ -73,94 +73,95 @@ function HomeTags({
       editTagsAll(tagsToUpdate);
     }
 
-    setIsEditTags(false);
+    setIsEditingTags(false);
     setTagsToBeDeleted([]);
+  }
+
+  if (isEditingTags) {
+    return (
+      <div>
+        <div className="flex items-end justify-between">
+          <h2 className="font-semibold">Edit Tags</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={handleTagDone}
+              disabled={isDeletingTags}
+              className="bg-accent hover:bg-accent-hover cursor-pointer rounded-lg px-2 py-1 text-sm text-white transition-colors duration-150"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3 py-2">
+          {draftTags.length > 0 ? (
+            draftTags.map((tag) => {
+              return (
+                <EditTagItem
+                  key={tag.id}
+                  tag={tag}
+                  handleNameChange={handleEditDraftTagName}
+                  handleColorChange={handleEditDraftTagColor}
+                  handleDelete={handleDraftTagDelete}
+                />
+              );
+            })
+          ) : (
+            <div className="text-secondary/70 text-sm italic">
+              No tags created yet.
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
-      {!isEditTags ? (
-        <div>
-          <div className="flex items-end justify-between">
-            <h2 className="font-semibold">Tags</h2>
-            <button
-              onClick={() => {
-                setIsEditTags(true);
-              }}
-              disabled={isDeletingTags}
-              className="text-secondary hover:text-primary hover:bg-mantle-hover font-ibm-plex-mono cursor-pointer rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase transition-colors duration-150"
-            >
-              Edit
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 py-2">
-            {visibleTags.length > 0 ? (
-              visibleTags.map((tag) => {
-                const count = tagCounts[tag.id] || 0;
-                const isSelected = selectedTags.some((selectedTag) => {
-                  return selectedTag.name === tag.name;
-                });
-                return (
-                  <TagChip
-                    as="button"
-                    onClick={() => {
-                      handleTagSelectedClick(tag);
-                    }}
-                    className={`hover:bg-tag-hover focus-visible:ring-accent/30 cursor-pointer focus-visible:ring-2 focus-visible:outline-none ${
-                      isSelected ? "bg-tag-selected" : ""
-                    }`}
-                    key={tag.id}
-                    color={tag.color}
-                  >
-                    <div>
-                      {tag.name}{" "}
-                      <span className="text-secondary">({count})</span>
-                    </div>
-                  </TagChip>
-                );
-              })
-            ) : (
-              <div className="text-secondary/70 text-sm italic">
-                No tags created yet.
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <div className="flex items-end justify-between">
-            <h2 className="font-semibold">Edit Tags</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={handleTagDone}
-                disabled={isDeletingTags}
-                className="bg-accent hover:bg-accent-hover cursor-pointer rounded-lg px-2 py-1 text-sm text-white transition-colors duration-150"
+      <div className="flex items-end justify-between">
+        <h2 className="font-semibold">Tags</h2>
+        {tags.length > 0 && (
+          <button
+            onClick={() => {
+              setIsEditingTags(true);
+            }}
+            disabled={isDeletingTags}
+            className="text-secondary hover:text-primary hover:bg-mantle-hover font-ibm-plex-mono cursor-pointer rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase transition-colors duration-150"
+          >
+            Edit
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 py-2">
+        {visibleTags.length > 0 ? (
+          visibleTags.map((tag) => {
+            const count = tagCounts[tag.id] || 0;
+            const isSelected = selectedTags.some((selectedTag) => {
+              return selectedTag.name === tag.name;
+            });
+            return (
+              <TagChip
+                as="button"
+                onClick={() => {
+                  handleTagSelectedClick(tag);
+                }}
+                className={`hover:bg-tag-hover focus-visible:ring-accent/30 cursor-pointer focus-visible:ring-2 focus-visible:outline-none ${
+                  isSelected ? "bg-tag-selected" : ""
+                }`}
+                key={tag.id}
+                color={tag.color}
               >
-                Done
-              </button>
-            </div>
+                <div>
+                  {tag.name} <span className="text-secondary">({count})</span>
+                </div>
+              </TagChip>
+            );
+          })
+        ) : (
+          <div className="text-secondary/70 text-sm italic">
+            No tags created yet.
           </div>
-          <div className="flex flex-wrap gap-3 py-2">
-            {draftTags.length > 0 ? (
-              draftTags.map((tag) => {
-                return (
-                  <EditTagItem
-                    key={tag.id}
-                    tag={tag}
-                    handleNameChange={handleEditDraftTagName}
-                    handleColorChange={handleEditDraftTagColor}
-                    handleDelete={handleDraftTagDelete}
-                  />
-                );
-              })
-            ) : (
-              <div className="text-secondary/70 text-sm italic">
-                No tags created yet.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

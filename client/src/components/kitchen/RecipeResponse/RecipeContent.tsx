@@ -1,6 +1,6 @@
 import { useEffect, useState, memo, type RefObject } from "react";
 import RecipeContentPromptModal from "./RecipeContentPromptModal";
-import RecipeContentDetailsBar from "./RecipeContentDetailsBar";
+import RecipeContentDetails from "./RecipeContentDetails";
 import RecipeContentFooter from "./RecipeContentFooter";
 import RecipeContentIngredients from "./RecipeContentIngredients";
 import RecipeContentInstructions from "./RecipeContentInstructions";
@@ -87,7 +87,7 @@ const RecipeContent = memo(
         <h1 className="font-lora line-clamp-2 max-w-screen-md text-3xl leading-snug font-semibold wrap-break-word md:text-4xl">
           {recipe?.title}
         </h1>
-        <RecipeContentDetailsBar recipeDetails={recipeDetails} />
+        <RecipeContentDetails recipeDetails={recipeDetails} />
         <p className="mb-4 wrap-break-word">{description}</p>
         <RecipeContentIngredients
           ingredients={ingredients}

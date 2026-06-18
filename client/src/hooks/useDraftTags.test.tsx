@@ -11,7 +11,7 @@ const setTagsToBeDeleted = vi.fn();
 describe("useDeleteRecipe", () => {
   it("initializes draftTags from tags when edit mode is enabled", async () => {
     const { result } = renderHook(() =>
-      useDraftTags({ tags, isEditTags: true, setTagsToBeDeleted }),
+      useDraftTags({ tags, isEditingTags: true, setTagsToBeDeleted }),
     );
 
     await waitFor(() => {
@@ -21,7 +21,7 @@ describe("useDeleteRecipe", () => {
 
   it("updates a tag name by id", async () => {
     const { result } = renderHook(() =>
-      useDraftTags({ tags, isEditTags: true, setTagsToBeDeleted }),
+      useDraftTags({ tags, isEditingTags: true, setTagsToBeDeleted }),
     );
 
     act(() => {
@@ -38,7 +38,7 @@ describe("useDeleteRecipe", () => {
 
   it("deletes ", async () => {
     const { result } = renderHook(() =>
-      useDraftTags({ tags, isEditTags: true, setTagsToBeDeleted }),
+      useDraftTags({ tags, isEditingTags: true, setTagsToBeDeleted }),
     );
 
     act(() => {
@@ -55,7 +55,7 @@ describe("useDeleteRecipe", () => {
 
   it("removes a tag from draftTags and appends it to tagsToBeDeleted", async () => {
     const { result } = renderHook(() =>
-      useDraftTags({ tags, isEditTags: true, setTagsToBeDeleted }),
+      useDraftTags({ tags, isEditingTags: true, setTagsToBeDeleted }),
     );
 
     act(() => {

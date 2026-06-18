@@ -1,7 +1,7 @@
 import type { useDraftRecipe } from "../../../hooks/useDraftRecipe";
 import type { RecipeDetails } from "../../../types/recipe";
 
-type RecipeEditDetailsBarProps = {
+type RecipeEditDetailsProps = {
   recipeDetails: RecipeDetails;
   handleDraftDetail: ReturnType<typeof useDraftRecipe>["handleDraftDetail"];
 };
@@ -30,20 +30,19 @@ const DETAIL_ITEMS = [
   },
 ] as const;
 
-function RecipeEditDetailsBar({
+function RecipeEditDetails({
   recipeDetails,
   handleDraftDetail,
-}: RecipeEditDetailsBarProps) {
+}: RecipeEditDetailsProps) {
   return (
     <section className="mb-2">
       <h3 className="font-lora text-secondary mb-2 text-lg font-medium">
         Recipe Details
       </h3>
-      {/* TO DO: For mobile this flex-col one item at a time */}
       <div
         role="group"
         aria-label="Editable recipe details"
-        className="text-secondary flex break-inside-avoid flex-wrap items-center gap-x-4 gap-y-2 py-2"
+        className="text-secondary flex flex-col gap-x-4 gap-y-2 py-2 sm:flex-row"
       >
         {DETAIL_ITEMS.map(({ field, label, placeholder, prefix, suffix }) => (
           <label
@@ -72,4 +71,4 @@ function RecipeEditDetailsBar({
   );
 }
 
-export default RecipeEditDetailsBar;
+export default RecipeEditDetails;
