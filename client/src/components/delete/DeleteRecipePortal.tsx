@@ -94,13 +94,13 @@ function DeletePortal({
         <div className="flex items-center justify-end gap-5">
           <button
             onClick={onClose}
-            className="text-secondary hover:text-primary cursor-pointer text-sm underline underline-offset-4 transition-colors duration-150"
+            className="text-secondary hover:text-primary font-ibm-plex-mono cursor-pointer text-sm tracking-[0.08em] uppercase transition-colors duration-150"
           >
             Cancel
           </button>
           <button
             onClick={onDelete}
-            className="text-rose hover:text-rose/75 cursor-pointer text-sm font-medium underline underline-offset-4 transition-colors duration-150"
+            className="text-rose hover:text-rose/75 font-ibm-plex-mono cursor-pointer text-sm tracking-[0.08em] uppercase transition-colors duration-150"
           >
             Delete
           </button>
