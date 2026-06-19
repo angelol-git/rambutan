@@ -33,7 +33,7 @@ function HomeItems({
           + ADD RECIPE
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:min-h-[calc(275px*2+1rem)] md:auto-rows-[275px] md:grid-cols-3 lg:min-h-[calc(275px*2+1.5rem)] lg:gap-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:min-h-[calc(275px*2+1rem)] md:auto-rows-[275px] md:grid-cols-4 lg:min-h-[calc(275px*2+1.5rem)] lg:gap-6">
         {filteredRecipes?.map((recipe) => {
           return <HomeRecipeCard key={recipe.id} recipe={recipe} />;
           // return <HomeRecipeLine key={recipe.id} recipe={recipe} />;

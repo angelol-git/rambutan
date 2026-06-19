@@ -16,7 +16,7 @@ function Home() {
     isLoading: isRecipesLoading,
   } = useRecipes({
     page,
-    pageSize: 6,
+    pageSize: 8,
   });
 
   const {
@@ -55,7 +55,7 @@ function Home() {
 
   return (
     <div className="text-primary bg-base flex min-h-screen flex-col items-center p-6 lg:p-10">
-      <div className="flex w-full max-w-screen-md flex-col gap-5">
+      <div className="flex w-full max-w-screen-lg flex-col gap-5">
         <header className="flex items-center justify-between">
           <h1 className="font-lora text-4xl font-medium">Rambutan</h1>
           <UserOptions user={user} logout={logout} />
