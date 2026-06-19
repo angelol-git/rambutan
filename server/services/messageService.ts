@@ -1,10 +1,12 @@
 import db from "../db.js";
+import type { ParsedAiRecipe } from "./aiService.js";
 import type {
   AskMessageRow,
   ErrorMessageRow,
   ExistingNumericIdRow,
   RecipeId,
   UserId,
+  VersionId,
 } from "./db.types.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -39,7 +41,7 @@ export function saveUserPrompt(
   ).run(userId, recipeId ?? null, prompt);
 }
 
-export function saveAiError(
+export function saveAssistantErrorMessage(
   userId: UserId,
   recipeId: RecipeId | null | undefined,
   error: unknown,
@@ -48,6 +50,18 @@ export function saveAiError(
     `INSERT INTO messages (user_id, recipe_id, role, content, status)
      VALUES (?, ?, 'assistant', ?, 'error')`,
   ).run(userId, recipeId ?? null, JSON.stringify(error));
+}
+
+export function saveAssistantRecipeMessage(
+  userId: UserId,
+  recipeId: RecipeId,
+  recipeVersionId: VersionId,
+  recipe: ParsedAiRecipe,
+): void {
+  db.prepare(
+    `INSERT INTO messages (user_id, recipe_id, recipe_version_id, role, content, status)
+     VALUES (?, ?, ?, 'assistant', ?, 'recipe')`,
+  ).run(userId, recipeId, recipeVersionId, JSON.stringify(recipe));
 }
 
 export function getRecipeErrors(

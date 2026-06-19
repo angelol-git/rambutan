@@ -8,7 +8,10 @@ import {
   getModelName,
   AiValidationError,
 } from "../services/aiService.js";
-import { saveUserPrompt, saveAiError } from "../services/messageService.js";
+import {
+  saveUserPrompt,
+  saveAssistantErrorMessage,
+} from "../services/messageService.js";
 import { saveRecipeToDb } from "../services/recipeService.js";
 import { getUrlContext } from "../services/urlContentService.js";
 import { isValidUrl } from "../utils/urlValidator.js";
@@ -127,7 +130,7 @@ router.post(
         );
 
         if (user) {
-          saveAiError(user.id, recipeId ?? null, {
+          saveAssistantErrorMessage(user.id, recipeId ?? null, {
             ...error.meta,
             ai_model: getModelName(),
           });

@@ -1,6 +1,7 @@
 import db from "../db.js";
 import { v7 as uuidv7 } from "uuid";
 import type { ParsedAiRecipe } from "./aiService.js";
+import { saveAssistantRecipeMessage } from "./messageService.js";
 import type {
   CountRow,
   ExistingTextIdRow,
@@ -54,26 +55,25 @@ export function saveRecipeToDb(
   },
 ): Recipe | null {
   return db.transaction(() => {
-    const newRecipeId = recipeId ?? uuidv7();
+    const recipeRecordId = recipeId ?? uuidv7();
 
     //New recipe
     if (!recipeId) {
       db.prepare(
         `INSERT INTO recipes (id, user_id, title, source_url)
          VALUES (?, ?, ?, ?)`,
-      ).run(newRecipeId, userId, parsedRecipe.title, sourceUrl ?? null);
-    }
-    //TO DO: We are always updating?
-    else {
+      ).run(recipeRecordId, userId, parsedRecipe.title, sourceUrl ?? null);
+    } else {
       db.prepare(
         `UPDATE recipes
-         SET title = ?, updated_at = CURRENT_TIMESTAMP
+         SET
+         updated_at = CURRENT_TIMESTAMP
          WHERE id = ? AND user_id = ?`,
-      ).run(parsedRecipe.title, newRecipeId, userId);
+      ).run(recipeRecordId, userId);
     }
 
     const newVersionId = uuidv7();
-    const versionNumber = getNextVersionNumber(newRecipeId);
+    const versionNumber = getNextVersionNumber(recipeRecordId);
 
     db.prepare(
       `INSERT INTO recipe_versions (
@@ -90,7 +90,7 @@ export function saveRecipeToDb(
        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       newVersionId,
-      newRecipeId,
+      recipeRecordId,
       versionNumber,
       parsedRecipe.servings,
       parsedRecipe.total_time,
@@ -104,15 +104,16 @@ export function saveRecipeToDb(
     insertIngredientRows(newVersionId, parsedRecipe.ingredients);
     insertInstructionRows(newVersionId, parsedRecipe.instructions);
 
-    //TO DO: should I be saving messages in this function/service?
-    db.prepare(
-      `INSERT INTO messages (user_id, recipe_id, recipe_version_id, role, content, status)
-       VALUES (?, ?, ?, 'assistant', ?, 'recipe')`,
-    ).run(userId, newRecipeId, newVersionId, JSON.stringify(parsedRecipe));
+    saveAssistantRecipeMessage(
+      userId,
+      recipeRecordId,
+      newVersionId,
+      parsedRecipe,
+    );
 
     parsedRecipe.versionId = newVersionId;
 
-    return buildRecipeResponse(newRecipeId, userId);
+    return buildRecipeResponse(recipeRecordId, userId);
   })();
 }
 
