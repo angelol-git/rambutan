@@ -16,16 +16,19 @@ function RecipeContentInstructions({
   if (instructions.length === 0) return null;
 
   return (
-    <section aria-labelledby="instructions-heading" className="mb-4 w-full">
+    <section
+      aria-labelledby="instructions-heading"
+      className="mb-5 w-full border-t border-black/8 pt-5"
+    >
       <div className="flex items-center justify-between gap-3">
-        <h3 id="instructions-heading" className="font-lora text-lg font-medium">
+        <h3 id="instructions-heading" className="font-lora text-xl font-medium">
           Instructions
         </h3>
         {instructions.some((item) => item.completed) && (
           <button
             type="button"
             onClick={onResetCompletion}
-            className="text-secondary/80 hover:text-primary font-ibm-plex-mono cursor-pointer text-sm uppercase"
+            className="text-secondary hover:text-primary font-ibm-plex-mono cursor-pointer text-[11px] tracking-[0.12em] uppercase transition-colors duration-150"
           >
             Reset
           </button>

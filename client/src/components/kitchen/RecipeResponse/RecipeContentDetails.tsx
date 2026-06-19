@@ -22,7 +22,6 @@ function RecipeContentDetails({
         <div>{formatApproxValue(recipeDetails.calories)}</div>
         Calories
       </div>
-
       <div className="font-lora flex items-center gap-1 font-medium text-green-900/80 italic">
         Cooks in
         <div>{formatApproxValue(recipeDetails.total_time)}</div>

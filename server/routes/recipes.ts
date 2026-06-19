@@ -66,7 +66,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
 
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const pageSize =
-    Number.isFinite(parsedPageSize) && parsedPageSize > 0 ? parsedPageSize : 8;
+    Number.isFinite(parsedPageSize) && parsedPageSize > 0 ? parsedPageSize : 6;
   try {
     const recipes = getRecipesByUserId(user.id, { page, pageSize });
     return res.json(recipes);

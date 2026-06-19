@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Link } from "react-router";
 import HomeRecipeCard from "./HomeRecipeCard";
+// import HomeRecipeLine from "./HomeRecipeLine";
 import type { Recipe } from "../../types/recipe";
 
 type HomeItemsProps = {
@@ -23,19 +24,19 @@ function HomeItems({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div className="font-semibold">Recipes({totalItems})</div>
-        {/* TO DO: This button should probably be renamed to something  */}
         <Link
           to="/kitchen"
-          className="focus-visible:ring-accent/25 border-accent/45 bg-accent/8 text-accent-hover hover:border-accent/55 hover:bg-accent/18 hover:text-accent-hover inline-flex min-h-8 cursor-pointer items-center justify-center rounded-full border px-3 py-1 text-sm leading-none shadow-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          className="text-accent hover:text-accent-hover font-ibm-plex-mono border-accent/60 hover:border-accent-hover cursor-pointer border-b pb-0.5 text-sm font-medium tracking-wider uppercase transition-colors duration-150"
         >
-          + Recipe
+          + ADD RECIPE
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:min-h-[calc(275px*2+1rem)] md:auto-rows-[275px] md:grid-cols-4 lg:min-h-[calc(275px*2+1.5rem)] lg:gap-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:min-h-[calc(275px*2+1rem)] md:auto-rows-[275px] md:grid-cols-3 lg:min-h-[calc(275px*2+1.5rem)] lg:gap-6">
         {filteredRecipes?.map((recipe) => {
           return <HomeRecipeCard key={recipe.id} recipe={recipe} />;
+          // return <HomeRecipeLine key={recipe.id} recipe={recipe} />;
         })}
       </div>
       {totalPages > 1 && (

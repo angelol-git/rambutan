@@ -62,7 +62,7 @@ function createPaginatedRecipesResponse(
   return {
     items,
     page: 1,
-    pageSize: 8,
+    pageSize: 6,
     totalItems: items.length,
     totalPages: items.length > 0 ? 1 : 0,
     ...overrides,
@@ -100,7 +100,7 @@ describe("useRecipeAssistant", () => {
       }),
     ];
 
-    const recipesQueryKey = ["recipes", "guest_recipes", 1, 8, []];
+    const recipesQueryKey = ["recipes", "guest_recipes", 1, 6, []];
     queryClient.setQueryData(
       recipesQueryKey,
       createPaginatedRecipesResponse(previousRecipes),
@@ -153,7 +153,7 @@ describe("useRecipeAssistant", () => {
       description: "Soup version",
     });
 
-    const paginatedRecipesQueryKey = ["recipes", "guest_recipes", 1, 8, []];
+    const paginatedRecipesQueryKey = ["recipes", "guest_recipes", 1, 6, []];
     queryClient.setQueryData(
       paginatedRecipesQueryKey,
       createPaginatedRecipesResponse(existingRecipes),
@@ -177,7 +177,7 @@ describe("useRecipeAssistant", () => {
       expect(queryClient.getQueryData(paginatedRecipesQueryKey)).toEqual({
         items: [existingRecipes[0], newRecipe],
         page: 1,
-        pageSize: 8,
+        pageSize: 6,
         totalItems: 2,
         totalPages: 1,
       });
@@ -210,7 +210,7 @@ describe("useRecipeAssistant", () => {
       recipe: newRecipe,
     });
 
-    const paginatedRecipesQueryKey = ["recipes", "user-1", 1, 8, []];
+    const paginatedRecipesQueryKey = ["recipes", "user-1", 1, 6, []];
     queryClient.setQueryData(
       paginatedRecipesQueryKey,
       createPaginatedRecipesResponse([]),
@@ -230,7 +230,7 @@ describe("useRecipeAssistant", () => {
       expect(queryClient.getQueryData(paginatedRecipesQueryKey)).toEqual({
         items: [newRecipe],
         page: 1,
-        pageSize: 8,
+        pageSize: 6,
         totalItems: 1,
         totalPages: 0,
       });
@@ -278,7 +278,7 @@ describe("useRecipeAssistant", () => {
       ],
     };
 
-    const paginatedRecipesQueryKey = ["recipes", "user-1", 1, 8, []];
+    const paginatedRecipesQueryKey = ["recipes", "user-1", 1, 6, []];
     queryClient.setQueryData(
       paginatedRecipesQueryKey,
       createPaginatedRecipesResponse([existingRecipe]),
@@ -304,7 +304,7 @@ describe("useRecipeAssistant", () => {
       expect(queryClient.getQueryData(paginatedRecipesQueryKey)).toEqual({
         items: [updatedRecipe],
         page: 1,
-        pageSize: 8,
+        pageSize: 6,
         totalItems: 1,
         totalPages: 1,
       });
