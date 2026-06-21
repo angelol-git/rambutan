@@ -54,7 +54,7 @@ const KitchenLayout = () => {
 
   return (
     <div
-      className={`bg-base text-primary relative flex h-[100dvh] w-full overscroll-contain`}
+      className={`bg-mantle text-primary relative flex h-[100dvh] w-full overscroll-contain`}
     >
       <main className="relative flex min-w-0 flex-1 overflow-hidden">
         <div className="flex w-full min-w-0 flex-1 flex-col">

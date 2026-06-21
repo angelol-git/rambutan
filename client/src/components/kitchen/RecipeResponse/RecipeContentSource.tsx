@@ -46,7 +46,7 @@ function RecipeContentSource({ source }: RecipeContentSourceProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="text-secondary hover:text-primary hover:bg-base-hover flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 py-1 transition-colors duration-150"
+          className="text-secondary hover:text-primary hover:bg-base flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 py-1 transition-colors duration-150"
           aria-label="Copy source"
         >
           <div className="font-ibm-plex-mono text-xs tracking-[0.12em] uppercase">

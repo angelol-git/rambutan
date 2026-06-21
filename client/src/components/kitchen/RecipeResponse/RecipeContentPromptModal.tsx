@@ -47,7 +47,7 @@ function RecipeContentPromptModal({
         style={anchorStyle}
       >
         <div
-          className={`bg-base flex h-[90dvh] w-full transform flex-col overflow-y-auto overscroll-contain rounded-t-xl px-4 pt-6 pb-10 shadow-lg transition-transform duration-300 ease-out lg:rounded-xl ${
+          className={`border-crust bg-base flex h-[90dvh] w-full transform flex-col overflow-y-auto overscroll-contain rounded-t-xl border px-4 pt-6 pb-10 shadow-xl transition-transform duration-300 ease-out lg:rounded-xl ${
             isOpen ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -56,7 +56,7 @@ function RecipeContentPromptModal({
           <div className="mb-3 flex items-center justify-between">
             <button
               onClick={onClose}
-              className="text-secondary hover:text-primary hover:bg-base-hover flex h-9 w-18 cursor-pointer items-center justify-center rounded-lg px-2 transition-colors duration-150"
+              className="text-secondary hover:text-primary hover:bg-mantle flex h-9 w-18 cursor-pointer items-center justify-center rounded-lg px-2 transition-colors duration-150"
             >
               Close
             </button>
@@ -65,7 +65,7 @@ function RecipeContentPromptModal({
             </div>
             <button
               onClick={handleCopy}
-              className="text-secondary hover:text-primary hover:bg-base-hover flex h-9 w-18 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 transition-colors duration-150"
+              className="text-secondary hover:text-primary hover:bg-mantle flex h-9 w-18 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 transition-colors duration-150"
               aria-label="Copy source prompt"
             >
               <Copy size={18} />

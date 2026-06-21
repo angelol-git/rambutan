@@ -78,21 +78,21 @@ function RecipeEditorModal({
       >
         <div
           ref={modalRef}
-          className={`bg-base flex max-h-[90dvh] w-full transform flex-col overflow-y-auto overscroll-contain rounded-t-xl px-4 pt-5 pb-8 shadow-lg transition-transform duration-300 ease-out lg:rounded-xl lg:px-5 lg:pt-6 lg:pb-10 ${isEditModalOpen ? "translate-y-0" : "translate-y-full"}`}
+          className={`border-crust bg-base flex max-h-[90dvh] w-full transform flex-col overflow-y-auto overscroll-contain rounded-t-xl border px-4 pt-5 pb-8 shadow-xl transition-transform duration-300 ease-out lg:rounded-xl lg:px-5 lg:pt-6 lg:pb-10 ${isEditModalOpen ? "translate-y-0" : "translate-y-full"}`}
           style={{ WebkitOverflowScrolling: "touch" }}
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex items-center justify-between pb-4">
             <button
               onClick={() => setIsEditModalOpen(false)}
-              className="hover:bg-base-hover transition-color w-18 cursor-pointer rounded-lg px-2 py-1 duration-150"
+              className="hover:bg-mantle transition-color w-18 cursor-pointer rounded-lg px-2 py-1 duration-150"
             >
               Cancel
             </button>
             <h2 className="font-bold">Edit Recipe</h2>
             <button
               onClick={handleSave}
-              className="hover:bg-base-hover transition-color w-18 cursor-pointer rounded-lg px-2 py-1 duration-150"
+              className="hover:bg-mantle transition-color w-18 cursor-pointer rounded-lg px-2 py-1 duration-150"
             >
               Save
             </button>

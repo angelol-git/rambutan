@@ -19,7 +19,11 @@ function renderIngredient(ingredient: RecipeIngredient) {
     <RoughStrike
       completed={ingredient.completed}
       singleLine
-      className="inline-flex max-w-full items-center gap-1 justify-self-start break-words"
+      className={`inline-flex max-w-full items-center gap-1 justify-self-start break-words ${
+        !ingredient.completed
+          ? "group-hover:decoration-secondary/50 group-hover:line-through"
+          : ""
+      }`}
     >
       {hasPrimaryMeasurement && (
         <span>
@@ -55,7 +59,11 @@ function renderIngredient(ingredient: RecipeIngredient) {
       <RoughStrike
         completed={ingredient.completed}
         firstLineOnly
-        className="inline-block max-w-full min-w-0 break-words"
+        className={`inline-block max-w-full min-w-0 break-words ${
+          !ingredient.completed
+            ? "group-hover:decoration-secondary/75 group-hover:line-through"
+            : ""
+        }`}
       >
         {ingredient.ingredient_name && (
           <span className="break-words">
@@ -110,7 +118,7 @@ function RecipeContentIngredients({
                 type="button"
                 onClick={() => onToggleCompletion(item.id)}
                 aria-pressed={item.completed}
-                className="hover:bg-base-hover col-span-2 grid min-h-8 min-w-0 cursor-pointer grid-cols-subgrid items-start rounded-lg px-1 py-1.5 text-left transition-colors duration-150"
+                className="group relative col-span-2 grid min-h-8 min-w-0 cursor-pointer grid-cols-subgrid items-start rounded-lg px-1 py-1.5 text-left transition-colors duration-150"
               >
                 {measurementCell}
                 {textCell}

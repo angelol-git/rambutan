@@ -41,7 +41,7 @@ function OpenAssistantComposer({
   onSubmit,
 }: OpenAssistantComposerProps) {
   return (
-    <div className="border-secondary/25 bg-base focus-within:border-secondary/45 relative w-full rounded-[1.5rem] border transition-colors duration-200">
+    <div className="border-secondary/30 bg-base shadow-xs focus-within:border-secondary/50 relative w-full rounded-[1.5rem] border transition-colors duration-200">
       <textarea
         rows={1}
         ref={textAreaRef}
@@ -67,7 +67,7 @@ function OpenAssistantComposer({
       {!isNewRecipe && (
         <button
           onClick={onMinimize}
-          className="text-accent hover:text-accent-hover absolute top-3 right-3 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150"
+          className="text-accent hover:bg-mantle hover:text-accent-hover absolute top-3 right-3 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150"
           aria-label="Minimize recipe assistant"
         >
           <Minimize2 size={16} strokeWidth={1.5} className="stroke-current" />

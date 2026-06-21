@@ -1,4 +1,11 @@
-import { useRef, useEffect, useState, memo, type Dispatch, type SetStateAction } from "react";
+import {
+  useRef,
+  useEffect,
+  useState,
+  memo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useNavigate } from "react-router";
 import { useRecipeAssistant } from "../../../hooks/useRecipeAssistant.js";
 import { useToast } from "../../../hooks/useToast.js";
@@ -110,11 +117,11 @@ const AssistantComposer = memo((props: AssistantComposerProps) => {
       }
     }
 
-    if (composerMode === "Ask") {
-      if (props.variant === "existing") {
-        props.setIsQuestionsModalOpen(true);
-      }
-    }
+    // if (composerMode === "Ask") {
+    //   if (props.variant === "existing") {
+    //     props.setIsQuestionsModalOpen(true);
+    //   }
+    // }
   }
 
   return isAssistantOpen ? (

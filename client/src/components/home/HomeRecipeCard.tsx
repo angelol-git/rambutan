@@ -10,6 +10,7 @@ function HomeRecipeCard({ recipe }: { recipe: Recipe }) {
     "var(--color-green)",
     "var(--color-blue)",
   ];
+  const versionLabel = recipe.versions.length === 1 ? "VERSION" : "VERSIONS";
 
   return (
     <Link
@@ -49,7 +50,7 @@ function HomeRecipeCard({ recipe }: { recipe: Recipe }) {
           </div>
           <div className="border-primary/10 flex items-center justify-between border-t pt-3 md:pt-4">
             <p className="text-secondary font-ibm-plex-mono text-[11px] tracking-[0.12em] uppercase">
-              {recipe.versions.length} versions
+              {recipe.versions.length} {versionLabel}
             </p>
           </div>
         </div>

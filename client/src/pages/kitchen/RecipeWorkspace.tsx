@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router";
 import type { OpenDeleteModal } from "../../hooks/useDeleteRecipe.js";
 import RecipeContent from "../../components/kitchen/RecipeResponse/RecipeContent.js";
-import RecipeVersionNavigation from "../../components/kitchen/RecipeVersionNavigation.js";
 import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
 import RecipeEditForm from "../../components/kitchen/RecipeEditMode/RecipeEditForm.jsx";
 import RecipeContentTags from "../../components/kitchen/RecipeResponse/RecipeContentTags.jsx";
@@ -85,15 +84,10 @@ function RecipeWorkspace() {
               style={{ paddingBottom: `${composerHeight + 16}px` }}
             >
               <RecipeContentTags recipe={recipe} />
-              <RecipeContent
-                recipe={recipe}
-                recipeVersion={recipeVersion}
-              />
+              <RecipeContent recipe={recipe} recipeVersion={recipeVersion} />
             </div>
           </div>
         ) : (
-          //TO DO: Maybe RecipeEditForm modal for mobile and inline editing for desktop
-          //TO DO: When the user switches to edit mode need to maintain the current scrolling position
           <div className="mx-auto w-full max-w-screen-md px-4">
             <div ref={replyPanelRef} className="w-full pt-2">
               <RecipeEditForm
@@ -109,21 +103,12 @@ function RecipeWorkspace() {
 
       {!isEditing && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0">
-          <div className="mx-auto w-full max-w-screen-md px-4">
+          <div className="mx-auto w-full max-w-screen-md">
             <div ref={composerRef} className="pb-safe w-full pt-2">
-              <div className="flex items-center justify-between gap-3">
-                {hasRecipeNavigation && !isAssistantOpen && (
-                  <div className="pointer-events-auto shrink-0">
-                    <RecipeVersionNavigation
-                      recipe={recipe}
-                      recipeVersion={recipeVersion}
-                      setRecipeVersion={setRecipeVersion}
-                    />
-                  </div>
-                )}
+              <div className="flex items-center justify-end gap-3">
                 <div
                   className={`pointer-events-auto flex justify-end ${
-                    isAssistantOpen ? "flex-1" : "ml-auto shrink-0"
+                    isAssistantOpen ? "flex-1" : "shrink-0"
                   }`}
                 >
                   <AssistantComposer
