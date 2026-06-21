@@ -31,17 +31,17 @@ const RecipeVersionNavigation = memo(
     }
 
     return (
-      <div className="border-primary/18 bg-base text-secondary shadow-xs flex h-9 shrink-0 items-center gap-0.5 rounded-full border px-0.5">
+      <div className="border-primary/18 bg-base text-secondary shadow-xs flex h-10 shrink-0 items-center gap-0.5 rounded-full border px-0.5">
         <button
           onClick={handlePrevious}
           disabled={recipeVersion === 0}
-          className="hover:bg-mantle-hover/55 hover:text-primary flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-35"
+          className="hover:bg-mantle-hover/55 hover:text-primary flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-35"
           aria-label="Previous version"
         >
-          <ChevronLeft size={14} strokeWidth={1.6} />
+          <ChevronLeft size={15} strokeWidth={1.6} />
         </button>
 
-        <span className="font-ibm-plex-mono min-w-[2.75rem] text-center text-[10px] tracking-[0.08em] uppercase tabular-nums">
+        <span className="font-ibm-plex-mono min-w-[3rem] text-center text-[10px] tracking-[0.08em] uppercase tabular-nums">
           {recipeVersion + 1}
           <span className="text-secondary/60 mx-0.5">/</span>
           {totalVersions}
@@ -49,10 +49,10 @@ const RecipeVersionNavigation = memo(
         <button
           onClick={handleNext}
           disabled={recipeVersion === totalVersions - 1}
-          className="hover:bg-mantle-hover/55 hover:text-primary flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-35"
+          className="hover:bg-mantle-hover/55 hover:text-primary flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-35"
           aria-label="Next version"
         >
-          <ChevronRight size={14} strokeWidth={1.6} />
+          <ChevronRight size={15} strokeWidth={1.6} />
         </button>
       </div>
     );

@@ -30,8 +30,8 @@ function NewRecipe() {
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
         <div className="mx-auto w-full max-w-screen-md">
-          <div className="pb-safe pointer-events-auto w-full px-4 pt-2">
-          <AssistantComposer variant="new-recipe" />
+          <div className="pb-safe-tight pointer-events-auto w-full px-4 pt-2">
+            <AssistantComposer variant="new-recipe" />
           </div>
         </div>
       </div>

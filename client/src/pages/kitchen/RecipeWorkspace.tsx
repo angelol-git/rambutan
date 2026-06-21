@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, Dispatch, SetStateAction } from "react";
+import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router";
 import type { OpenDeleteModal } from "../../hooks/useDeleteRecipe.js";
 import RecipeContent from "../../components/kitchen/RecipeResponse/RecipeContent.js";
+import RecipeVersionNavigation from "../../components/kitchen/RecipeVersionNavigation.js";
 import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
 import RecipeEditForm from "../../components/kitchen/RecipeEditMode/RecipeEditForm.jsx";
 import RecipeContentTags from "../../components/kitchen/RecipeResponse/RecipeContentTags.jsx";
@@ -29,9 +30,6 @@ function RecipeWorkspace() {
   const [isQuestionsModalOpen, setIsQuestionsModalOpen] =
     useState<boolean>(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
-  const [composerHeight, setComposerHeight] = useState<number>(0);
-  const composerRef = useRef<HTMLDivElement | null>(null);
-  const replyPanelRef = useRef<HTMLDivElement | null>(null);
   const hasRecipeNavigation = recipe?.versions?.length > 1;
 
   useEffect(() => {
@@ -47,28 +45,6 @@ function RecipeWorkspace() {
     setIsQuestionsModalOpen(false);
   }, [isEditing]);
 
-  useEffect(() => {
-    if (isEditing) return;
-
-    const node = composerRef.current;
-    if (!node) return;
-
-    const updateComposerHeight = () => {
-      setComposerHeight(node.offsetHeight);
-    };
-
-    updateComposerHeight();
-
-    const observer = new ResizeObserver(updateComposerHeight);
-    observer.observe(node);
-    window.addEventListener("resize", updateComposerHeight);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateComposerHeight);
-    };
-  }, [isEditing, isAssistantOpen, hasRecipeNavigation]);
-
   if (!recipe && !isLoading) {
     return <NotFound />;
   }
@@ -78,18 +54,14 @@ function RecipeWorkspace() {
       <div>
         {!isEditing ? (
           <div className="mx-auto w-full max-w-screen-md px-4">
-            <div
-              ref={replyPanelRef}
-              className="w-full pt-2"
-              style={{ paddingBottom: `${composerHeight + 16}px` }}
-            >
+            <div className="w-full pt-2" style={{ paddingBottom: "16px" }}>
               <RecipeContentTags recipe={recipe} />
               <RecipeContent recipe={recipe} recipeVersion={recipeVersion} />
             </div>
           </div>
         ) : (
           <div className="mx-auto w-full max-w-screen-md px-4">
-            <div ref={replyPanelRef} className="w-full pt-2">
+            <div className="w-full pt-2">
               <RecipeEditForm
                 recipe={recipe}
                 recipeVersion={recipeVersion}
@@ -104,8 +76,19 @@ function RecipeWorkspace() {
       {!isEditing && (
         <div className="pointer-events-none sticky bottom-0 mt-4">
           <div className="mx-auto w-full max-w-screen-md px-2 md:px-4">
-            <div ref={composerRef} className="pb-safe w-full pt-2">
-              <div className="flex items-center justify-end gap-3">
+            <div className="pb-safe-tight w-full pt-2">
+              <div className="flex items-center justify-between">
+                {hasRecipeNavigation && !isAssistantOpen ? (
+                  <div className="pointer-events-auto shrink-0">
+                    <RecipeVersionNavigation
+                      recipe={recipe}
+                      recipeVersion={recipeVersion}
+                      setRecipeVersion={setRecipeVersion}
+                    />
+                  </div>
+                ) : (
+                  <div />
+                )}
                 <div
                   className={`pointer-events-auto flex justify-end ${
                     isAssistantOpen ? "flex-1" : "shrink-0"

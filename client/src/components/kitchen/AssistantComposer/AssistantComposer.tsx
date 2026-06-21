@@ -40,7 +40,7 @@ const AssistantComposer = memo((props: AssistantComposerProps) => {
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const isActiveRef = useRef<boolean>(true);
   const { showToast } = useToast();
-  const minHeight = 42;
+  const minHeight = 52;
   const maxHeight = 160;
   const isNewRecipe = props.variant === "new-recipe";
   const recipe = props.variant === "existing" ? props.recipe : undefined;

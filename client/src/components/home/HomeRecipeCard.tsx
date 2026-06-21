@@ -34,7 +34,7 @@ function HomeRecipeCard({ recipe }: { recipe: Recipe }) {
               style={{
                 // backgroundColor: stackColors[(layer - 1) % stackColors.length],
                 zIndex: stackLayer,
-                transform: `translate(${layer * stackOffsetX}px, ${layer * stackOffsetY}px) rotate(${layer * -0.8}deg)`,
+                transform: `translate(${layer * stackOffsetX}px, ${layer * stackOffsetY}px)`,
               }}
             />
           );
