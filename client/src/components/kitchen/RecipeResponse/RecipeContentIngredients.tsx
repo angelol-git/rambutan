@@ -102,7 +102,7 @@ function RecipeContentIngredients({
           <button
             type="button"
             onClick={onResetCompletion}
-            className="text-secondary hover:text-primary font-ibm-plex-mono cursor-pointer text-[11px] tracking-[0.12em] uppercase transition-colors duration-150"
+            className="interactive-mono text-secondary hover:text-primary text-[11px] tracking-[0.12em] uppercase"
           >
             Reset
           </button>

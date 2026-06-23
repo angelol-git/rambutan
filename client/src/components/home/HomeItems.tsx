@@ -28,7 +28,7 @@ function HomeItems({
         <div className="font-semibold">Recipes({totalItems})</div>
         <Link
           to="/kitchen"
-          className="text-accent hover:text-accent-hover font-ibm-plex-mono border-accent/60 hover:border-accent-hover cursor-pointer border-b pb-0.5 text-sm font-medium tracking-wider uppercase transition-colors duration-150"
+          className="interactive-mono text-accent text-sm font-medium tracking-wider uppercase"
         >
           + ADD RECIPE
         </Link>

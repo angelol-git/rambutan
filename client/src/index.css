@@ -89,3 +89,18 @@ body,
 @utility pb-safe-tight {
   padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 }
+
+@layer components {
+  .interactive-mono {
+    @apply font-ibm-plex-mono cursor-pointer no-underline transition-[color,text-decoration-color] duration-150;
+    text-underline-offset: 0.12em;
+    text-decoration-thickness: 0.09em;
+    text-decoration-color: transparent;
+  }
+
+  .interactive-mono:hover,
+  .interactive-mono:focus-visible {
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+  }
+}

@@ -24,20 +24,23 @@ const KitchenHeader = ({
       }`}
     >
       <div className="mx-auto w-full max-w-4xl">
-        <div
-          className={`flex w-full items-center ${
-            isEditing ? "justify-end" : "justify-between"
-          }`}
-        >
-          {!isEditing && (
-            <Link
-              to="/"
-              className="text-secondary hover:text-primary hover:bg-base focus-visible:ring-accent/25 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none"
-              aria-label="Back to home"
-            >
-              <MoveLeft strokeWidth={1.5} className="stroke-icon" size={20} />
-            </Link>
-          )}
+        <div className="flex w-full items-center justify-between">
+          <div className="flex min-w-[2rem] items-center">
+            {!isEditing ? (
+              <Link
+                to="/"
+                className="text-secondary hover:text-primary hover:bg-base focus-visible:ring-accent/25 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none"
+                aria-label="Back to home"
+              >
+                <MoveLeft strokeWidth={1.5} className="stroke-icon" size={20} />
+              </Link>
+            ) : (
+              <div
+                className="h-7 w-7"
+                aria-hidden="true"
+              />
+            )}
+          </div>
           {recipe && (
             <KitchenOptions
               isEditing={isEditing}

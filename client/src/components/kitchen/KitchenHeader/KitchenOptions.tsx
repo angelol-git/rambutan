@@ -12,11 +12,11 @@ function KitchenOptions({ isEditing, setIsEditing }: KitchenOptionsProps) {
         onClick={() => {
           setIsEditing(false);
         }}
-        className="font-ibm-plex-mono cursor-pointer tracking-[0.08em] uppercase"
+        className="interactive-mono tracking-[0.08em] uppercase"
       >
         Cancel
       </button>
-      <div className="font-ibm-plex-mono cursor-pointer tracking-[0.08em] uppercase">
+      <div className="interactive-mono tracking-[0.08em] uppercase">
         Save
       </div>
     </div>
@@ -26,11 +26,11 @@ function KitchenOptions({ isEditing, setIsEditing }: KitchenOptionsProps) {
         onClick={() => {
           setIsEditing(true);
         }}
-        className="font-ibm-plex-mono cursor-pointer tracking-[0.08em] uppercase"
+        className="interactive-mono tracking-[0.08em] uppercase"
       >
         Edit
       </button>
-      <div className="font-ibm-plex-mono cursor-pointer tracking-[0.08em] uppercase">
+      <div className="interactive-mono tracking-[0.08em] uppercase">
         Share
       </div>
     </div>

@@ -42,7 +42,7 @@ function RecipeEditInstructions({
         <button
           type="button"
           onClick={() => handleDraftArrayPush("instructions", "")}
-          className="text-secondary/80 hover:text-primary font-ibm-plex-mono cursor-pointer text-sm uppercase"
+          className="interactive-mono text-secondary/80 text-sm uppercase"
         >
           Add step
         </button>
@@ -66,7 +66,7 @@ function RecipeEditInstructions({
               <button
                 type="button"
                 onClick={() => handleDraftArrayDelete("instructions", index)}
-                className="text-secondary/70 hover:text-primary font-ibm-plex-mono mt-1 cursor-pointer text-xs uppercase"
+                className="interactive-mono text-secondary/70 mt-1 text-xs uppercase"
               >
                 Remove
               </button>

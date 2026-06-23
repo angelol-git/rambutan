@@ -46,12 +46,10 @@ function RecipeContentSource({ source }: RecipeContentSourceProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="text-secondary hover:text-primary hover:bg-base flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 py-1 transition-colors duration-150"
+          className="interactive-mono text-secondary hover:text-primary flex items-center justify-center gap-1.5 py-1 text-xs tracking-[0.12em] uppercase"
           aria-label="Copy source"
         >
-          <div className="font-ibm-plex-mono text-xs tracking-[0.12em] uppercase">
-            Copy
-          </div>
+          <div>Copy</div>
         </button>
       </div>
       <div className="min-w-0">
@@ -80,7 +78,7 @@ function RecipeContentSource({ source }: RecipeContentSourceProps) {
               <button
                 type="button"
                 onClick={() => setIsExpanded((expanded) => !expanded)}
-                className="hover:text-primary font-ibm-plex-mono mt-2 cursor-pointer text-xs tracking-[0.12em] uppercase transition-colors duration-150"
+                className="interactive-mono hover:text-primary mt-2 text-xs tracking-[0.12em] uppercase"
               >
                 {isExpanded ? "Show Less" : "Show More"}
               </button>
