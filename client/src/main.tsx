@@ -15,15 +15,3 @@ createRoot(rootElement).render(
     </BrowserRouter>
   </StrictMode>,
 );
-
-/*
- * TO DO: will need to update this
- * Loading overlays are used for the home page and kitchen routes (new and recipe)
- */
-window.hideLoadingOverlay = function () {
-  const loadingoverlay = document.getElementById("loadingoverlay");
-  if (loadingoverlay) {
-    loadingoverlay.classList.add("fade-out");
-    setTimeout(() => loadingoverlay.remove(), 200);
-  }
-};

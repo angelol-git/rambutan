@@ -20,7 +20,7 @@ const KitchenHeader = ({
   return (
     <div
       className={`px-5 pt-5 pb-4 sm:px-6 ${
-        isSticky ? "bg-mantle sticky top-0 z-30" : ""
+        isSticky ? "bg-mantle sticky top-0 z-30 rounded-t-2xl" : ""
       }`}
     >
       <div className="mx-auto w-full max-w-4xl">

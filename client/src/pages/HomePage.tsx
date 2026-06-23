@@ -6,6 +6,23 @@ import { useUser } from "../hooks/useUser";
 import { useRecipes } from "../hooks/useRecipes";
 import { useTags } from "../hooks/useTags";
 
+function HomePageSkeleton() {
+  return (
+    <div className="text-primary bg-base flex min-h-screen flex-col items-center p-6 lg:p-10">
+      <div className="flex w-full max-w-screen-lg flex-col gap-5">
+        <header className="flex items-center justify-between">
+          <h1 className="font-lora text-4xl font-medium">Rambutan</h1>
+          <div />
+        </header>
+        <main className="flex flex-col gap-6">
+          <div className="font-semibold">Tags</div>
+          <div className="font-semibold">Recipes</div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function HomePage() {
   const [page, setPage] = useState(1);
   const { user, logout, isLoading: isUserLoading } = useUser();
@@ -32,11 +49,7 @@ function HomePage() {
     document.title = "Rambutan";
   }, []);
 
-  useEffect(() => {
-    if (!isUserLoading && !isRecipesLoading) {
-      window.hideLoadingOverlay?.();
-    }
-  }, [isUserLoading, isRecipesLoading]);
+  const isLoading = isUserLoading || isRecipesLoading;
 
   const filteredRecipes = (recipes ?? []).filter((recipe) => {
     if (selectedTags.length === 0) return true;
@@ -51,6 +64,10 @@ function HomePage() {
   useEffect(() => {
     setPage(1);
   }, [selectedTags]);
+
+  if (isLoading) {
+    return <HomePageSkeleton />;
+  }
 
   return (
     <div className="text-primary bg-base flex min-h-screen flex-col items-center p-6 lg:p-10">

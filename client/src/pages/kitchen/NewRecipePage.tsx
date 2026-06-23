@@ -1,14 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AssistantComposer from "../../components/kitchen/AssistantComposer/AssistantComposer";
 import KitchenHeader from "../../components/kitchen/KitchenHeader/KitchenHeader.js";
 
 function NewRecipePage() {
   const [isEditing, setIsEditing] = useState(false);
-
-  // Hide the loading overlay once the page is ready.
-  useEffect(() => {
-    window.hideLoadingOverlay?.();
-  }, []);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col">

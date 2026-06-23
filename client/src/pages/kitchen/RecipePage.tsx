@@ -18,6 +18,27 @@ import { useRecipes } from "../../hooks/useRecipes";
 import type { Recipe } from "../../types/recipe.js";
 import NotFoundPage from "../NotFoundPage";
 
+function RecipePageSkeleton() {
+  return (
+    <div className="bg-base text-primary relative min-h-screen w-full">
+      <main className="relative w-full">
+        <div className="mx-auto flex w-full max-w-4xl px-3 py-2 pb-4 md:px-5">
+          <div className="relative flex w-full">
+            <div className="bg-mantle border-primary/10 relative z-20 flex w-full flex-col rounded-2xl border py-8 md:min-h-[calc(100dvh-1rem)]">
+              <div className="bg-mantle sticky top-0 z-30 px-5 pt-5 pb-4 sm:px-6">
+                <div className="mx-auto w-full max-w-4xl">
+                  <div className="border-primary/10 mt-4 border-b" />
+                </div>
+              </div>
+              <div className="flex-1" />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function RecipePage() {
   const { id } = useParams();
   const { recipes, isLoading } = useRecipes({ page: 1, pageSize: 1000 });
@@ -58,18 +79,15 @@ function RecipePage() {
     }
   }, [recipe?.title]);
 
-  // Hide the loading overlay once the recipe has loaded.
-  useEffect(() => {
-    if (recipe) {
-      window.hideLoadingOverlay?.();
-    }
-  }, [recipe]);
-
   useEffect(() => {
     if (!isEditing) return;
     setIsAssistantOpen(false);
     setIsQuestionsModalOpen(false);
   }, [isEditing]);
+
+  if (isLoading) {
+    return <RecipePageSkeleton />;
+  }
 
   if (!recipe && !isLoading) {
     return <NotFoundPage />;

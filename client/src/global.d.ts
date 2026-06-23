@@ -2,7 +2,6 @@ export {}
 
 declare global {
   interface Window {
-    hideLoadingOverlay: () => void;
     google?: {
       accounts: {
         id: {
