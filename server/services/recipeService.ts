@@ -75,7 +75,7 @@ export function saveRecipeToDb(
     const newVersionId = uuidv7();
     const versionNumber = getNextVersionNumber(recipeRecordId);
     const source = parseRecipeSource(parsedRecipe.source_input);
-
+    const notes = normalizeRecipeVersionNotes(parsedRecipe.notes);
     db.prepare(
       `INSERT INTO recipe_versions (
          id,
@@ -85,12 +85,13 @@ export function saveRecipeToDb(
          total_time,
          calories,
          description,
+         notes,
          source_type,
          source_value,
          source_summary,
          ai_model,
          relation
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       newVersionId,
       recipeRecordId,
@@ -99,6 +100,7 @@ export function saveRecipeToDb(
       parsedRecipe.total_time,
       parsedRecipe.calories,
       parsedRecipe.description,
+      notes,
       source?.type ?? null,
       source?.value ?? null,
       source?.summary ?? null,
@@ -164,7 +166,7 @@ export function getRecipesByUserId(
   const versions = db
     .prepare(
       `SELECT id, recipe_id, version_number, servings, total_time, calories,
-              description, source_type, source_value, source_summary, ai_model, created_at
+              description, notes, source_type, source_value, source_summary, ai_model, created_at
        FROM recipe_versions
        WHERE recipe_id IN (${recipeIds.map(() => "?").join(", ")})
        ORDER BY recipe_id ASC, version_number ASC`,
@@ -286,12 +288,14 @@ export function updateRecipe(
       return { success: false, error: "Recipe version not found" };
     }
 
+    const notes = normalizeRecipeVersionNotes(updatedRecipe.notes);
     db.prepare(
       `UPDATE recipe_versions
        SET servings = ?,
            total_time = ?,
            calories = ?,
            description = ?,
+           notes = ?,
            source_type = ?,
            source_value = ?,
            source_summary = ?,
@@ -302,6 +306,7 @@ export function updateRecipe(
       updatedRecipe.recipeDetails.total_time ?? null,
       updatedRecipe.recipeDetails.calories ?? null,
       updatedRecipe.description ?? null,
+      notes,
       updatedRecipe.source?.type ?? null,
       updatedRecipe.source?.value ?? null,
       updatedRecipe.source?.summary ?? null,
@@ -492,6 +497,7 @@ function mapRecipeVersions(
       total_time: version.total_time ?? null,
     },
     description: version.description ?? "",
+    notes: version.notes ?? "",
     instructions: instructionsMap.get(version.id) ?? [],
     ingredients: ingredientsMap.get(version.id) ?? [],
     source: toRecipeSource(version),
@@ -510,7 +516,7 @@ function getRecipeVersions(
   const versions = db
     .prepare(
       `SELECT id, recipe_id, version_number, servings, total_time, calories,
-              description, source_type, source_value, source_summary, ai_model, created_at
+              description, notes, source_type, source_value, source_summary, ai_model, created_at
        FROM recipe_versions
        WHERE recipe_id = ?
        ORDER BY version_number ${normalizedOrder}`,
@@ -755,4 +761,9 @@ export function parseRecipeSource(
     value,
     summary: value,
   };
+}
+
+function normalizeRecipeVersionNotes(notes?: string | null): string | null {
+  const value = notes?.trim();
+  return value ? value : null;
 }

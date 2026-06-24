@@ -66,6 +66,8 @@ function RecipePage() {
 
   useEffect(() => {
     if (recipe?.versions?.length) {
+      // TODO: Currently setting the recipe version to the latest.
+      // should open the last version before closed otherwise set to latest
       setRecipeVersion(recipe.versions.length - 1);
     } else {
       setRecipeVersion(0);

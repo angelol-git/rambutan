@@ -68,6 +68,12 @@ export const updateRecipeSchema = z.object({
         .transform((s) => s.trim())
         .optional()
         .nullable(),
+      notes: z
+        .string()
+        .max(4000)
+        .transform((s) => s.trim())
+        .optional()
+        .nullable(),
       instructions: z.array(recipeInstructionSchema).min(1),
       ingredients: z.array(recipeIngredientSchema).min(1),
       source: recipeSourceSchema,

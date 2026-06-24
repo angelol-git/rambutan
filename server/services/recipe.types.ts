@@ -39,6 +39,7 @@ export type RecipeVersion = {
     total_time: number | null;
   };
   description: string;
+  notes: string;
   instructions: RecipeInstruction[];
   ingredients: RecipeIngredient[];
   source: RecipeSource | null;
