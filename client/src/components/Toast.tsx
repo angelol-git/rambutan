@@ -8,16 +8,35 @@ type ToastProps = {
 };
 
 function Toast({ message, onClose, type = "error" }: ToastProps) {
+  const isAssistantComposerOpen =
+    document.body.dataset.assistantComposerOpen === "true";
+
   return createPortal(
     <div
       role="alert"
       aria-live="assertive"
-      className={` ${type === "error" ? "bg-rose" : "bg-accent"} center fixed top-40 left-1/2 z-[200] flex w-[calc(100%-2rem)] max-w-screen-md -translate-x-1/2 transform justify-between gap-2 rounded-lg p-4 text-sm text-white shadow-lg sm:w-auto`}
+      className={`fixed left-1/2 z-[200] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 transition-[bottom] duration-200 ${
+        isAssistantComposerOpen ? "bottom-32" : "bottom-4"
+      }`}
     >
-      <span>{message}</span>
-      <button className="cursor-pointer underline" onClick={onClose}>
-        Close
-      </button>
+      <div
+        className={`flex items-center justify-between gap-4 rounded-[1rem] px-4 py-3 shadow-lg ${
+          type === "error" ? "bg-rose text-white" : "bg-accent text-white"
+        }`}
+      >
+        <div className="flex min-w-0 items-center">
+          <span className="min-w-0 text-sm leading-6 break-words">
+            {message}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="interactive-mono shrink-0 text-xs tracking-[0.08em] text-white uppercase hover:text-white/80"
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
     </div>,
     document.body,
   );

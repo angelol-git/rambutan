@@ -82,6 +82,17 @@ const AssistantComposer = memo((props: AssistantComposerProps) => {
     }
   }, [isSuccess]);
 
+  //Track when assistantComposerOpen so Toast UI appears above it
+  useEffect(() => {
+    document.body.dataset.assistantComposerOpen = isAssistantOpen
+      ? "true"
+      : "false";
+
+    return () => {
+      document.body.dataset.assistantComposerOpen = "false";
+    };
+  }, [isAssistantOpen]);
+
   async function handleSubmitPrompt() {
     if (!prompt.trim()) return;
 
