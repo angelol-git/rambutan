@@ -13,7 +13,7 @@ function RecipeEditControls({
   openDeleteModal,
 }: RecipeEditControlsProps) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-10 text-sm">
+    <div className="flex flex-wrap items-center justify-center gap-10 pt-5 text-sm">
       <button
         type="button"
         onClick={() => openDeleteModal(recipe, "all")}

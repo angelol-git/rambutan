@@ -19,6 +19,7 @@ import RecipeEditNotes from "./RecipeEditNotes";
 import RecipeEditIngredients from "./RecipeEditIngredients";
 import RecipeEditInstructions from "./RecipeEditInstructions";
 import RecipeEditControls from "./RecipeEditControls";
+import RecipeContentVersionInfo from "../RecipeResponse/RecipeContentVersionInfo";
 
 const EMPTY_RECIPE_DETAILS: RecipeDetails = {
   calories: null,
@@ -174,6 +175,10 @@ const RecipeEditForm = memo(
           <RecipeEditNotes
             recipeNotes={recipeNotes}
             handleDraftString={handleDraftString}
+          />
+          <RecipeContentVersionInfo
+            recipeVersion={recipeVersion}
+            versionCount={recipe.versions.length}
           />
           <RecipeEditControls
             recipe={recipe}
