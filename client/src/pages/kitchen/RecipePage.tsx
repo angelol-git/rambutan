@@ -60,7 +60,10 @@ function RecipePage() {
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
   const { deleteModal, openDeleteModal, closeDeleteModal, handleDelete } =
     useDeleteRecipe({
-      onDeleteVersion: setRecipeVersion,
+      onDeleteVersion: (nextRecipeVersion) => {
+        setRecipeVersion(nextRecipeVersion);
+        setIsEditing(false);
+      },
     });
   const hasRecipeNavigation = (recipe?.versions?.length ?? 0) > 1;
   const stackCount = Math.min(
