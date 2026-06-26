@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pino from "pino";
 import authRoutes from "./routes/auth.js";
 import recipeRoutes from "./routes/recipes.js";
 import kitchenRoutes from "./routes/kitchen.js";
 import tagRoutes from "./routes/tags.js";
 import cookieParser from "cookie-parser";
 import type { ErrorRequestHandler } from "express";
+import logger from "./logger.js";
 type ShutdownSignal = "SIGTERM" | "SIGINT";
 
 dotenv.config();
@@ -15,11 +15,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const isProduction = process.env.NODE_ENV === "production";
-const logger = pino({
-  name: "rambutan-server",
-  level: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
-});
 
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(cookieParser());

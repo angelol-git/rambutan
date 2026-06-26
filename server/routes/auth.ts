@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import { v4 as uuidv4 } from "uuid";
 import authMiddleware from "../middleware.js";
 import db from "../db.js";
+import logger from "../logger.js";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -78,7 +79,13 @@ router.post(
 
       return res.json({ message: "Logged in", user: payload });
     } catch (error) {
-      console.error("Google login error:", error);
+      logger.error(
+        {
+          err: error,
+          path: req.originalUrl,
+        },
+        "Google login failed",
+      );
       return res.status(401).json({ error: "Invalid Google token" });
     }
   },
@@ -92,7 +99,13 @@ router.post("/logout", (req: Request, res: Response) => {
       db.prepare(`DELETE FROM sessions WHERE sid = ?`).run(sid);
       res.clearCookie("sid");
     } catch (error) {
-      console.log("Failed to delete session: ", error);
+      logger.error(
+        {
+          err: error,
+          path: req.originalUrl,
+        },
+        "Failed to delete session during logout",
+      );
     }
   }
 
