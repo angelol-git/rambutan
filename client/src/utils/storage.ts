@@ -6,9 +6,78 @@ import type { Recipe, UpdateRecipeInput } from "../types/recipe";
 import type { DraftTag, EditableTagUpdate, Tag } from "../types/tag";
 
 const GUEST_RECIPES_STORAGE_KEY = "rambutan-guest-recipes";
+const RECIPE_COMPLETION_STORAGE_KEY = "rambutan-recipe-completions";
+
+type RecipeCompletionState = {
+  ingredients: Record<string, boolean>;
+  instructions: Record<string, boolean>;
+};
+
+type StoredRecipeCompletionState = Partial<RecipeCompletionState>;
+type StoredRecipeCompletionMap = Record<string, StoredRecipeCompletionState>;
 
 function generateId(): string {
   return crypto.randomUUID();
+}
+
+function getStoredRecipeCompletionMap(): StoredRecipeCompletionMap {
+  const data = localStorage.getItem(RECIPE_COMPLETION_STORAGE_KEY);
+  if (!data) return {};
+
+  try {
+    const parsed: unknown = JSON.parse(data);
+    if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      console.warn("Recipe completion storage is invalid, clearing");
+      localStorage.removeItem(RECIPE_COMPLETION_STORAGE_KEY);
+      return {};
+    }
+
+    return parsed as StoredRecipeCompletionMap;
+  } catch (error) {
+    console.error("Failed to parse recipe completion storage:", error);
+    localStorage.removeItem(RECIPE_COMPLETION_STORAGE_KEY);
+    return {};
+  }
+}
+
+export function getRecipeCompletionState(
+  recipeId: string,
+  recipeVersionId: string,
+): RecipeCompletionState {
+  const completionMap = getStoredRecipeCompletionMap();
+  const stored = completionMap[`${recipeId}:${recipeVersionId}`];
+
+  return {
+    ingredients: stored?.ingredients ?? {},
+    instructions: stored?.instructions ?? {},
+  };
+}
+
+export function saveRecipeCompletionState(
+  recipeId: string,
+  recipeVersionId: string,
+  completionState: RecipeCompletionState,
+): void {
+  const completionMap = getStoredRecipeCompletionMap();
+  const recipeVersionCompletionKey = `${recipeId}:${recipeVersionId}`;
+  const hasCompletedIngredients =
+    Object.keys(completionState.ingredients).length > 0;
+  const hasCompletedInstructions =
+    Object.keys(completionState.instructions).length > 0;
+
+  if (!hasCompletedIngredients && !hasCompletedInstructions) {
+    delete completionMap[recipeVersionCompletionKey];
+  } else {
+    completionMap[recipeVersionCompletionKey] = {
+      ingredients: completionState.ingredients,
+      instructions: completionState.instructions,
+    };
+  }
+
+  localStorage.setItem(
+    RECIPE_COMPLETION_STORAGE_KEY,
+    JSON.stringify(completionMap),
+  );
 }
 
 export function getLocalRecipes(): Recipe[] {

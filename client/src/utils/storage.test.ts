@@ -9,12 +9,15 @@ import {
   deleteLocalRecipeAll,
   editLocalTagsAll,
   deleteLocalTagsAll,
+  getRecipeCompletionState,
+  saveRecipeCompletionState,
 } from "./storage";
 import type { Recipe, RecipeVersion } from "../types/recipe";
 import type { Tag } from "../types/tag";
 
 const CREATED_AT = "2026-04-10T23:49:41.354Z";
 const GUEST_RECIPES_STORAGE_KEY = "rambutan-guest-recipes";
+const RECIPE_COMPLETION_STORAGE_KEY = "rambutan-recipe-completions";
 
 function makeTag(overrides: Partial<Tag> = {}): Tag {
   return {
@@ -434,5 +437,49 @@ describe("deleteLocalTagsAll", () => {
     ]);
     const result2 = recipes.find((recipe) => recipe.id === "recipe-2");
     expect(result2?.tags).toEqual([]);
+  });
+});
+
+describe("recipe completion storage", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("stores completion state per recipe version", () => {
+    saveRecipeCompletionState("recipe-1", "version-1", {
+      ingredients: { "ingredient-1": true },
+      instructions: { "instruction-1": true },
+    });
+
+    expect(getRecipeCompletionState("recipe-1", "version-1")).toEqual({
+      ingredients: { "ingredient-1": true },
+      instructions: { "instruction-1": true },
+    });
+    expect(localStorage.getItem(RECIPE_COMPLETION_STORAGE_KEY)).toBe(
+      JSON.stringify({
+        "recipe-1:version-1": {
+          ingredients: { "ingredient-1": true },
+          instructions: { "instruction-1": true },
+        },
+      }),
+    );
+  });
+
+  it("removes empty completion state for a recipe version", () => {
+    saveRecipeCompletionState("recipe-1", "version-1", {
+      ingredients: { "ingredient-1": true },
+      instructions: {},
+    });
+
+    saveRecipeCompletionState("recipe-1", "version-1", {
+      ingredients: {},
+      instructions: {},
+    });
+
+    expect(getRecipeCompletionState("recipe-1", "version-1")).toEqual({
+      ingredients: {},
+      instructions: {},
+    });
+    expect(localStorage.getItem(RECIPE_COMPLETION_STORAGE_KEY)).toBe("{}");
   });
 });

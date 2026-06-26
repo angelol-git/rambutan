@@ -1,16 +1,12 @@
-import { useEffect, useState, memo } from "react";
+import { memo } from "react";
 import RecipeContentDetails from "./RecipeContentDetails";
 import RecipeContentIngredients from "./RecipeContentIngredients";
 import RecipeContentInstructions from "./RecipeContentInstructions";
 import RecipeContentNotes from "./RecipeContentNotes";
 import RecipeContentSource from "./RecipeContentSource";
 import RecipeContentVersionInfo from "./RecipeContentVersionInfo";
-import type {
-  Recipe,
-  RecipeDetails,
-  RecipeIngredient,
-  RecipeInstruction,
-} from "../../../types/recipe";
+import { useRecipeCompletion } from "../../../hooks/useRecipeCompletion";
+import type { Recipe, RecipeDetails } from "../../../types/recipe";
 
 const EMPTY_RECIPE_DETAILS: RecipeDetails = {
   calories: null,
@@ -25,8 +21,9 @@ type RecipeContentProps = {
 
 const RecipeContent = memo(({ recipe, recipeVersion }: RecipeContentProps) => {
   const current = recipe?.versions?.[recipeVersion];
-  const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
-  const [instructions, setInstructions] = useState<RecipeInstruction[]>([]);
+  const recipeVersionId = current?.id ?? "";
+  const initialIngredients = current?.ingredients ?? [];
+  const initialInstructions = current?.instructions ?? [];
 
   const {
     recipeDetails = EMPTY_RECIPE_DETAILS,
@@ -35,49 +32,21 @@ const RecipeContent = memo(({ recipe, recipeVersion }: RecipeContentProps) => {
     source = null,
   } = current ?? {};
 
-  useEffect(() => {
-    setIngredients(current?.ingredients ?? []);
-    setInstructions(current?.instructions ?? []);
-  }, [current?.id, current?.ingredients, current?.instructions]);
+  const {
+    ingredients,
+    instructions,
+    toggleIngredientCompletion,
+    toggleInstructionCompletion,
+    resetIngredientCompletion,
+    resetInstructionCompletion,
+  } = useRecipeCompletion({
+    recipeId: recipe.id,
+    recipeVersionId,
+    initialIngredients,
+    initialInstructions,
+  });
 
   if (!current) return null;
-
-  //TOD DO: Completion should be saved to local storage
-  function toggleIngredientCompletion(ingredientId: string) {
-    const nextIngredients = ingredients.map((item) =>
-      item.id === ingredientId ? { ...item, completed: !item.completed } : item,
-    );
-
-    setIngredients(nextIngredients);
-  }
-
-  function toggleInstructionCompletion(instructionId: string) {
-    const nextInstructions = instructions.map((item) =>
-      item.id === instructionId
-        ? { ...item, completed: !item.completed }
-        : item,
-    );
-
-    setInstructions(nextInstructions);
-  }
-
-  function resetIngredientCompletion() {
-    const nextIngredients = ingredients.map((item) => ({
-      ...item,
-      completed: false,
-    }));
-
-    setIngredients(nextIngredients);
-  }
-
-  function resetInstructionCompletion() {
-    const nextInstructions = instructions.map((item) => ({
-      ...item,
-      completed: false,
-    }));
-
-    setInstructions(nextInstructions);
-  }
 
   return (
     <div
