@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -48,10 +47,10 @@ function RecipePageSkeleton() {
 function RecipePage() {
   const { id } = useParams();
   const { recipes, isLoading } = useRecipes({ page: 1, pageSize: 1000 });
-  const recipe = useMemo(() => {
+  const recipe = (() => {
     if (!id) return null;
     return recipes.find((r) => r.id === id) || null;
-  }, [recipes, id]);
+  })();
 
   const [recipeVersion, setRecipeVersion] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);

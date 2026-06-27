@@ -2,7 +2,6 @@ import {
   useRef,
   useEffect,
   useState,
-  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
@@ -34,7 +33,7 @@ type AssistantComposerProps =
   | ExistingAssistantComposerProps
   | NewAssistantComposerProps;
 
-const AssistantComposer = memo((props: AssistantComposerProps) => {
+function AssistantComposer(props: AssistantComposerProps) {
   const [prompt, setPrompt] = useState("");
   const composerMode = "Create";
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -168,8 +167,6 @@ const AssistantComposer = memo((props: AssistantComposerProps) => {
       }}
     />
   );
-});
-
-AssistantComposer.displayName = "AssistantComposer";
+}
 
 export default AssistantComposer;

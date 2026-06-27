@@ -1,5 +1,4 @@
 import {
-  memo,
   type Dispatch,
   type FormEvent,
   type SetStateAction,
@@ -84,112 +83,106 @@ type RecipeEditFormProps = {
 // }
 
 // TODO: Maybe update recipe edit form place holder text to have rotating examples
-const RecipeEditForm = memo(
-  ({
+function RecipeEditForm({
+  recipe,
+  recipeVersion,
+  isEditing,
+  formId,
+  setIsEditing,
+  openDeleteModal,
+}: RecipeEditFormProps) {
+  const { updateRecipe } = useRecipeMutations();
+  const {
+    draft,
+    handleDraftDetail,
+    handleDraftString,
+    handleDraftIngredientUpdate,
+    handleDraftInstructionUpdate,
+    handleDraftArrayDelete,
+    handleDraftArrayPush,
+  } = useDraftRecipe({
     recipe,
     recipeVersion,
-    isEditing,
-    formId,
-    setIsEditing,
-    openDeleteModal,
-  }: RecipeEditFormProps) => {
-    const { updateRecipe } = useRecipeMutations();
-    const {
-      draft,
-      handleDraftDetail,
-      handleDraftString,
-      handleDraftIngredientUpdate,
-      handleDraftInstructionUpdate,
-      handleDraftArrayDelete,
-      handleDraftArrayPush,
-    } = useDraftRecipe({
-      recipe,
-      recipeVersion,
-      isEditModalOpen: isEditing,
-    });
-    const current = recipe?.versions?.[recipeVersion];
+    isEditModalOpen: isEditing,
+  });
+  const current = recipe?.versions?.[recipeVersion];
 
-    if (!current) return null;
+  if (!current) return null;
 
-    function handleSave(event: FormEvent<HTMLFormElement>) {
-      event.preventDefault();
-      if (!draft) return;
+  function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!draft) return;
 
-      const recipeToSave: UpdateRecipeInput = {
-        id: draft.id,
-        recipe_id: draft.recipe_id,
-        title: draft.title,
-        tags: draft.tags,
-        description: draft.description,
-        notes: draft.notes,
-        recipeDetails: draft.recipeDetails,
-        source: draft.source,
-        instructions: draft.instructions || [],
-        ingredients: draft.ingredients || [],
-      };
+    const recipeToSave: UpdateRecipeInput = {
+      id: draft.id,
+      recipe_id: draft.recipe_id,
+      title: draft.title,
+      tags: draft.tags,
+      description: draft.description,
+      notes: draft.notes,
+      recipeDetails: draft.recipeDetails,
+      source: draft.source,
+      instructions: draft.instructions || [],
+      ingredients: draft.ingredients || [],
+    };
 
-      updateRecipe(recipeToSave);
-      setIsEditing(false);
-    }
+    updateRecipe(recipeToSave);
+    setIsEditing(false);
+  }
 
-    const recipeTitle = draft?.title || "";
-    const recipeDetails = draft?.recipeDetails || EMPTY_RECIPE_DETAILS;
-    const recipeDescription = draft?.description || "";
-    const recipeNotes = draft?.notes || "";
-    const recipeIngredients = draft?.ingredients || [];
-    const recipeInstructions = draft?.instructions || [];
-    return (
-      <form
-        id={formId}
-        onSubmit={handleSave}
-        className="flex flex-col gap-2 pb-12"
-      >
-        <div role="log" aria-live="polite" className="flex flex-col gap-2">
-          <RecipeEditTitle
-            recipeTitle={recipeTitle}
-            handleDraftString={handleDraftString}
-          />
-          <RecipeEditDetails
-            recipeDetails={recipeDetails}
-            handleDraftDetail={handleDraftDetail}
-          />
+  const recipeTitle = draft?.title || "";
+  const recipeDetails = draft?.recipeDetails || EMPTY_RECIPE_DETAILS;
+  const recipeDescription = draft?.description || "";
+  const recipeNotes = draft?.notes || "";
+  const recipeIngredients = draft?.ingredients || [];
+  const recipeInstructions = draft?.instructions || [];
+  return (
+    <form id={formId} onSubmit={handleSave} className="flex flex-col gap-2 pb-12">
+      <div role="log" aria-live="polite" className="flex flex-col gap-2">
+        <RecipeEditTitle
+          recipeTitle={recipeTitle}
+          handleDraftString={handleDraftString}
+        />
+        <RecipeEditDetails
+          recipeDetails={recipeDetails}
+          handleDraftDetail={handleDraftDetail}
+        />
 
-          <RecipeEditDescription
-            recipeDescription={recipeDescription}
-            handleDraftString={handleDraftString}
-          />
+        <RecipeEditDescription
+          recipeDescription={recipeDescription}
+          handleDraftString={handleDraftString}
+        />
 
-          <RecipeEditIngredients
-            ingredients={recipeIngredients}
-            handleDraftIngredientUpdate={handleDraftIngredientUpdate}
-            handleDraftArrayDelete={handleDraftArrayDelete}
-            handleDraftArrayPush={handleDraftArrayPush}
-          />
+        <RecipeEditIngredients
+          ingredients={recipeIngredients}
+          handleDraftIngredientUpdate={handleDraftIngredientUpdate}
+          handleDraftArrayDelete={handleDraftArrayDelete}
+          handleDraftArrayPush={handleDraftArrayPush}
+        />
 
-          <RecipeEditInstructions
-            instructions={recipeInstructions}
-            handleDraftInstructionUpdate={handleDraftInstructionUpdate}
-            handleDraftArrayDelete={handleDraftArrayDelete}
-            handleDraftArrayPush={handleDraftArrayPush}
-          />
-          <RecipeEditNotes
-            recipeNotes={recipeNotes}
-            handleDraftString={handleDraftString}
-          />
-          <RecipeContentVersionInfo
-            recipeVersion={recipeVersion}
-            versionCount={recipe.versions.length}
-          />
-          <RecipeEditControls
-            recipe={recipe}
-            recipeVersion={recipeVersion}
-            openDeleteModal={openDeleteModal}
-          />
-        </div>
-      </form>
-    );
-  },
-);
+        <RecipeEditInstructions
+          instructions={recipeInstructions}
+          handleDraftInstructionUpdate={handleDraftInstructionUpdate}
+          handleDraftArrayDelete={handleDraftArrayDelete}
+          handleDraftArrayPush={handleDraftArrayPush}
+        />
+        <RecipeEditNotes
+          recipeNotes={recipeNotes}
+          handleDraftString={handleDraftString}
+        />
+        <RecipeContentVersionInfo
+          recipeVersion={recipeVersion}
+          versionCount={recipe.versions.length}
+        />
+        <RecipeEditControls
+          recipe={recipe}
+          recipeVersion={recipeVersion}
+          openDeleteModal={openDeleteModal}
+        />
+      </div>
+    </form>
+  );
+}
 
 // RecipeEditForm.displayName = "RecipeE";
 

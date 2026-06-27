@@ -1,4 +1,3 @@
-import { memo } from "react";
 import RecipeContentDetails from "./RecipeContentDetails";
 import RecipeContentIngredients from "./RecipeContentIngredients";
 import RecipeContentInstructions from "./RecipeContentInstructions";
@@ -19,7 +18,7 @@ type RecipeContentProps = {
   recipeVersion: number;
 };
 
-const RecipeContent = memo(({ recipe, recipeVersion }: RecipeContentProps) => {
+function RecipeContent({ recipe, recipeVersion }: RecipeContentProps) {
   const current = recipe?.versions?.[recipeVersion];
   const recipeVersionId = current?.id ?? "";
   const initialIngredients = current?.ingredients ?? [];
@@ -89,8 +88,6 @@ const RecipeContent = memo(({ recipe, recipeVersion }: RecipeContentProps) => {
       </div>
     </div>
   );
-});
-
-RecipeContent.displayName = "RecipeContent";
+}
 
 export default RecipeContent;
