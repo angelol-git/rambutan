@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import UserOptionsPortal from "./UserOptionsPortal";
 import API_BASE_URL from "../config/api.js";
+import useEscapeKey from "../hooks/useEscapeKey";
 import { useToast } from "../hooks/useToast";
 import type { User } from "../types/user";
 
@@ -37,21 +38,9 @@ function UserOptions({ user, logout }: UserOptionsProps) {
     }
   }
 
-  //TO DO: move this and apply to other portals/modals
-  useEffect(() => {
-    if (!isUserOptionsOpen) return;
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsUserOptionsOpen(false);
-      }
-    }
-
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isUserOptionsOpen]);
+  useEscapeKey(() => {
+    setIsUserOptionsOpen(false);
+  });
 
   return (
     <>

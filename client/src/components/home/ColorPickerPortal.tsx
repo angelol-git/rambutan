@@ -3,16 +3,23 @@ import {
   useEffect,
   useState,
   useCallback,
+  type ComponentProps,
   type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
-import { SketchPicker, type ColorResult } from "react-color";
+import { SketchPicker } from "react-color";
+import useClickOutside from "../../hooks/useClickOutside";
+import useEscapeKey from "../../hooks/useEscapeKey";
+
+type SketchPickerChangeHandler = NonNullable<
+  ComponentProps<typeof SketchPicker>["onChangeComplete"]
+>;
 
 type ColorPickerPortalProps = {
   color: string;
   tagName: string;
   buttonRef: RefObject<HTMLButtonElement | null>;
-  onChange: (color: ColorResult) => void;
+  onChange: SketchPickerChangeHandler;
   onClose: () => void;
 };
 
@@ -29,7 +36,7 @@ function ColorPickerPortal({
   const handleClose = useCallback(() => {
     onClose();
     buttonRef.current?.focus();
-  }, [onClose]);
+  }, [buttonRef, onClose]);
 
   useEffect(() => {
     if (!portalRef.current || !buttonRef.current) return;
@@ -41,32 +48,9 @@ function ColorPickerPortal({
     setPosition(safe);
   }, [buttonRef]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (!(event.target instanceof Node)) return;
-      if (!buttonRef.current) return;
+  useClickOutside([portalRef, buttonRef], handleClose);
 
-      if (
-        portalRef.current &&
-        !portalRef.current.contains(event.target) &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        handleClose();
-      }
-    }
-
-    document.addEventListener("pointerdown", handleClickOutside);
-    return () =>
-      document.removeEventListener("pointerdown", handleClickOutside);
-  }, [buttonRef, handleClose]);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") handleClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, onClose]);
+  useEscapeKey(handleClose);
 
   useEffect(() => {
     if (!portalRef.current) return;
@@ -87,7 +71,7 @@ function ColorPickerPortal({
   ) {
     const vw = window.innerWidth;
 
-    let top = anchorRect.bottom + margin;
+    const top = anchorRect.bottom + margin;
     let left = anchorRect.left;
 
     if (left + portalRect.width > vw) {

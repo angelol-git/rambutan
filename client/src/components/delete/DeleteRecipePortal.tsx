@@ -1,6 +1,8 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { Recipe } from "../../types/recipe";
+import useClickOutside from "../../hooks/useClickOutside";
+import useEscapeKey from "../../hooks/useEscapeKey";
 
 type DeletePortalProps = {
   recipe: Recipe;
@@ -20,28 +22,10 @@ function DeletePortal({
 }: DeletePortalProps) {
   const portalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    //TODO: I am re creating this function multiple times.
-    function handleClickOutside(event: MouseEvent) {
-      if (!(event.target instanceof Node)) return;
+  useClickOutside([portalRef], onClose);
 
-      if (portalRef.current && !portalRef.current.contains(event.target)) {
-        onClose();
-      }
-    }
+  useEscapeKey(onClose);
 
-    document.addEventListener("pointerdown", handleClickOutside);
-    return () =>
-      document.removeEventListener("pointerdown", handleClickOutside);
-  }, [onClose]);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
   return createPortal(
     <div className="fixed inset-0 z-150 flex items-center justify-center bg-black/20 p-4">
       <div

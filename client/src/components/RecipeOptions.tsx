@@ -1,6 +1,7 @@
-import { useEffect, useRef, Dispatch, SetStateAction } from "react";
+import { useRef, type Dispatch, type SetStateAction } from "react";
 import { createPortal } from "react-dom";
-import { CircleX, Share, Ellipsis } from "lucide-react";
+import { CircleX, Ellipsis } from "lucide-react";
+import useClickOutside from "../hooks/useClickOutside";
 import type { OpenDeleteModal } from "../hooks/useDeleteRecipe";
 import type { Recipe } from "../types/recipe";
 
@@ -20,26 +21,12 @@ function RecipeOptions({
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const portalRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!isOptionsOpen) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (!(event.target instanceof Node)) return;
-
-      if (
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target) &&
-        portalRef.current &&
-        !portalRef.current.contains(event.target)
-      ) {
-        setIsOptionsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOptionsOpen, setIsOptionsOpen]);
+  useClickOutside(
+    [buttonRef, portalRef],
+    () => {
+      setIsOptionsOpen(false);
+    },
+  );
 
   return (
     <div className="relative">
@@ -52,7 +39,7 @@ function RecipeOptions({
         aria-haspopup="true"
         aria-expanded={isOptionsOpen}
         aria-label="Recipe options"
-        className="color-black hover:bg-mantle-hover cursor-pointer rounded-md px-2 py-1 font-bold duration-150"
+        className="color-black hover:bg-mantle-hover cursor-pointer rounded-md bg-red-500 px-2 py-1 font-bold duration-150"
         ref={buttonRef}
       >
         <Ellipsis size={24} strokeWidth={1.5} className="stroke-icon" />
