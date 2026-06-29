@@ -33,10 +33,14 @@ const KitchenHeader = ({
             {!isEditing ? (
               <Link
                 to="/"
-                className="text-secondary hover:text-primary hover:bg-base focus-visible:ring-accent/25 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none"
+                className="text-secondary hover:text-icon-accent hover:bg-base focus-visible:ring-accent/25 inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none"
                 aria-label="Back to home"
               >
-                <MoveLeft strokeWidth={1.5} className="stroke-icon" size={20} />
+                <MoveLeft
+                  strokeWidth={1.5}
+                  className="stroke-current"
+                  size={20}
+                />
               </Link>
             ) : (
               <div className="h-7 w-7" aria-hidden="true" />
