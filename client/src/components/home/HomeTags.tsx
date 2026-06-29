@@ -93,23 +93,17 @@ function HomeTags({
           </div>
         </div>
         <div className="flex flex-wrap gap-3 py-2">
-          {draftTags.length > 0 ? (
-            draftTags.map((tag) => {
-              return (
-                <EditTagItem
-                  key={tag.id}
-                  tag={tag}
-                  handleNameChange={handleEditDraftTagName}
-                  handleColorChange={handleEditDraftTagColor}
-                  handleDelete={handleDraftTagDelete}
-                />
-              );
-            })
-          ) : (
-            <div className="text-secondary/70 text-sm italic">
-              No tags created yet.
-            </div>
-          )}
+          {draftTags.map((tag) => {
+            return (
+              <EditTagItem
+                key={tag.id}
+                tag={tag}
+                handleNameChange={handleEditDraftTagName}
+                handleColorChange={handleEditDraftTagColor}
+                handleDelete={handleDraftTagDelete}
+              />
+            );
+          })}
         </div>
       </div>
     );
