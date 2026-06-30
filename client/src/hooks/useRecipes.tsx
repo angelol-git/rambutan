@@ -19,6 +19,8 @@ import type { DraftTag } from "../types/tag";
 import {
   addLocalRecipe,
   addLocalRecipeTag,
+  clearRecipeCompletionState,
+  clearRecipeCompletions,
   deleteLocalRecipeAll,
   deleteLocalRecipeVersion,
   getLocalRecipes,
@@ -59,6 +61,9 @@ export function useRecipeMutations() {
 
       return deleteLocalRecipeVersion(recipeId, recipeVersionId);
     },
+    onSuccess: (_, { recipeId, recipeVersionId }) => {
+      clearRecipeCompletionState(recipeId, recipeVersionId);
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
     },
@@ -72,6 +77,9 @@ export function useRecipeMutations() {
       }
 
       deleteLocalRecipeAll(recipeId);
+    },
+    onSuccess: (_, recipeId) => {
+      clearRecipeCompletions(recipeId);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });

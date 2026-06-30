@@ -86,6 +86,33 @@ export function saveRecipeCompletionState(
   );
 }
 
+export function clearRecipeCompletionState(
+  recipeId: string,
+  recipeVersionId: string,
+): void {
+  const completionMap = getStoredRecipeCompletionMap();
+  delete completionMap[`${recipeId}:${recipeVersionId}`];
+  localStorage.setItem(
+    RECIPE_COMPLETION_STORAGE_KEY,
+    JSON.stringify(completionMap),
+  );
+}
+
+export function clearRecipeCompletions(recipeId: string): void {
+  const completionMap = getStoredRecipeCompletionMap();
+
+  for (const key of Object.keys(completionMap)) {
+    if (key.startsWith(`${recipeId}:`)) {
+      delete completionMap[key];
+    }
+  }
+
+  localStorage.setItem(
+    RECIPE_COMPLETION_STORAGE_KEY,
+    JSON.stringify(completionMap),
+  );
+}
+
 export function getLocalRecipes(): Recipe[] {
   const data = localStorage.getItem(GUEST_RECIPES_STORAGE_KEY);
   if (!data) return [];
@@ -155,6 +182,7 @@ export function addLocalRecipeVersion(recipe: Recipe): Recipe {
 export function deleteLocalRecipeAll(id: string): void {
   const recipes = getLocalRecipes().filter((r) => r.id !== id);
   localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
+  clearRecipeCompletions(id);
 }
 
 export function deleteLocalRecipeVersion(
@@ -169,6 +197,7 @@ export function deleteLocalRecipeVersion(
       (v) => v.id !== recipeVersionId,
     );
     localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
+    clearRecipeCompletionState(recipeId, recipeVersionId);
   }
 }
 
