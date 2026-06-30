@@ -22,7 +22,7 @@ import type {
 } from "./recipe.types.js";
 import type { UpdateRecipeMetadataBody } from "../validation/recipeSchemas.js";
 
-type UpdateRecipeInput = UpdateRecipeMetadataBody["updatedRecipe"];
+type UpdateRecipeMetadataInput = UpdateRecipeMetadataBody["updatedRecipe"];
 
 type GetRecipesByUserIdOptions = {
   page: number;
@@ -37,7 +37,9 @@ type PaginatedRecipesResult = {
   totalPages: number;
 };
 
-type UpdateRecipeResult = { success: true } | { success: false; error: string };
+type UpdateRecipeMetadataResult =
+  | { success: true }
+  | { success: false; error: string };
 
 export function getRecipesByUserId(
   userId: UserId,
@@ -148,12 +150,12 @@ export function deleteRecipe(id: RecipeId, userId: UserId): boolean {
   return result.changes > 0;
 }
 
-export function updateRecipe(
+export function updateRecipeMetadata(
   id: RecipeId,
   userId: UserId,
-  updatedRecipe: UpdateRecipeInput,
-): UpdateRecipeResult {
-  return db.transaction((): UpdateRecipeResult => {
+  updatedRecipe: UpdateRecipeMetadataInput,
+): UpdateRecipeMetadataResult {
+  return db.transaction((): UpdateRecipeMetadataResult => {
     const updated = db
       .prepare(
         `UPDATE recipes

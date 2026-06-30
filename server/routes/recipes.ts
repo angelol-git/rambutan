@@ -4,7 +4,7 @@ import {
   getRecipesByUserId,
   getRecipeById,
   deleteRecipe,
-  updateRecipe,
+  updateRecipeMetadata,
 } from "../services/recipeService.js";
 import {
   getRecipeErrors,
@@ -110,7 +110,7 @@ router.patch(
     }
 
     try {
-      const result = updateRecipe(
+      const result = updateRecipeMetadata(
         req.params.recipeId,
         user.id,
         req.body.updatedRecipe,
