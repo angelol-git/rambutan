@@ -6,12 +6,16 @@ import { useUser } from "../hooks/useUser";
 import { useRecipes } from "../hooks/useRecipes";
 import { useTags } from "../hooks/useTags";
 
+function HomePageTitle() {
+  return <h1 className="font-lora text-4xl font-medium">Rambutan</h1>;
+}
+
 function HomePageSkeleton() {
   return (
     <div className="text-primary bg-base flex min-h-screen flex-col items-center p-6 lg:p-10">
       <div className="flex w-full max-w-screen-lg flex-col gap-5">
         <header className="flex items-center justify-between">
-          <h1 className="font-lora text-4xl font-medium">Rambutan</h1>
+          <HomePageTitle />
           <div />
         </header>
         <main className="flex flex-col gap-6">
@@ -74,7 +78,7 @@ function HomePage() {
     <div className="text-primary bg-base flex min-h-screen flex-col items-center p-6 lg:p-10">
       <div className="flex w-full max-w-screen-lg flex-col gap-5">
         <header className="flex items-center justify-between">
-          <h1 className="font-lora text-4xl font-medium">Rambutan</h1>
+          <HomePageTitle />
           <UserOptions user={user} logout={logout} />
         </header>
         <main className="flex flex-col gap-4">
