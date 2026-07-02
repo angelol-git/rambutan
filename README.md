@@ -1,4 +1,7 @@
-# <img src="https://github.com/angelol-git/rambutan/blob/main/.github/logo.png?raw=true" width="32" /> Rambutan
+<h1 align="center">
+  <img src="https://github.com/angelol-git/rambutan/blob/main/.github/logo.png?raw=true" width="48" alt="Rambutan logo" />
+  Rambutan
+</h1>
 
 Recipe manager app for importing, organizing, editing, and generating recipes.
 
