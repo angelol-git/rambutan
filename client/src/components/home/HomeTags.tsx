@@ -8,6 +8,7 @@ type HomeTagsProps = {
   tags: Tag[];
   selectedTags: Tag[];
   handleTagSelectedClick: (tag: Tag) => void;
+  resetSelectedTags: () => void;
   tagCounts: Partial<Record<Tag["id"], number>>;
   deleteTagsAll: (tagIds: Tag["id"][]) => void;
   isDeletingTags: boolean;
@@ -18,6 +19,7 @@ function HomeTags({
   tags,
   selectedTags,
   handleTagSelectedClick,
+  resetSelectedTags,
   tagCounts,
   deleteTagsAll,
   isDeletingTags,
@@ -115,15 +117,26 @@ function HomeTags({
       <div className="flex items-end justify-between">
         <h2 className="font-semibold">Tags</h2>
         {tags.length > 0 && (
-          <button
-            onClick={() => {
-              setIsEditingTags(true);
-            }}
-            disabled={isDeletingTags}
-            className="interactive-mono text-secondary hover:text-primary decoration-secondary/35 hover:decoration-primary rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase no-underline underline-offset-3 hover:underline"
-          >
-            Edit
-          </button>
+          <div className="flex gap-2">
+            {selectedTags.length > 0 && (
+              <button
+                onClick={resetSelectedTags}
+                disabled={isDeletingTags}
+                className="interactive-mono text-secondary hover:text-primary decoration-secondary/35 hover:decoration-primary rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase no-underline underline-offset-3 hover:underline"
+              >
+                Reset
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setIsEditingTags(true);
+              }}
+              disabled={isDeletingTags}
+              className="interactive-mono text-secondary hover:text-primary decoration-secondary/35 hover:decoration-primary rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase no-underline underline-offset-3 hover:underline"
+            >
+              Edit
+            </button>
+          </div>
         )}
       </div>
       <div className="flex flex-wrap gap-3 py-2">

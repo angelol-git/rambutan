@@ -166,10 +166,15 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
     });
   }
 
+  function resetSelectedTags() {
+    setSelectedTags([]);
+  }
+
   return {
     uniqueTags,
     selectedTags,
     handleTagSelectedClick,
+    resetSelectedTags,
     tagCounts,
     deleteTagsAll: deleteTagsAllMutation.mutate,
     isDeletingTags: deleteTagsAllMutation.isPending,

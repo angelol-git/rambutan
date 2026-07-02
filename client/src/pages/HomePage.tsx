@@ -39,6 +39,7 @@ function HomePage() {
     uniqueTags,
     selectedTags,
     handleTagSelectedClick,
+    resetSelectedTags,
     tagCounts,
     deleteTagsAll,
     isDeletingTags,
@@ -81,6 +82,7 @@ function HomePage() {
             tags={uniqueTags}
             selectedTags={selectedTags}
             handleTagSelectedClick={handleTagSelectedClick}
+            resetSelectedTags={resetSelectedTags}
             tagCounts={tagCounts}
             deleteTagsAll={deleteTagsAll}
             isDeletingTags={isDeletingTags}
