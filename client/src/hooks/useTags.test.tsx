@@ -86,21 +86,37 @@ describe("useTags", () => {
     });
   });
 
-  it("removes stored selected tags that no longer exist in recipes", async () => {
+  it("does not overwrite stored user tags while the user is still hydrating", async () => {
+    const user: User = {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+    };
+
     localStorage.setItem(
-      `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
+      `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
       JSON.stringify([dinnerTag]),
     );
 
-    const { result } = renderHook(
-      () => useTags(null, [createRecipe("1", [quickTag])]),
+    const { result, rerender } = renderHook(
+      ({ currentUser }: { currentUser: User | null }) =>
+        useTags(currentUser, [createRecipe("1", [dinnerTag])]),
       {
+        initialProps: {
+          currentUser: null,
+        },
         wrapper: createQueryClientWrapper().wrapper,
       },
     );
 
+    rerender({ currentUser: user });
+
     await waitFor(() => {
-      expect(result.current.selectedTags).toEqual([]);
+      expect(result.current.selectedTags).toEqual([dinnerTag]);
     });
+
+    expect(
+      localStorage.getItem(`${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`),
+    ).toBe(JSON.stringify([dinnerTag]));
   });
 });

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteTagsAll, editTagsAll } from "../api/tags.js";
 import { deleteLocalTagsAll, editLocalTagsAll } from "../utils/storage";
@@ -8,57 +8,46 @@ import type { Recipe } from "../types/recipe";
 
 const SELECTED_TAGS_STORAGE_KEY_PREFIX = "rambutan-selected-tags";
 
+function getSelectedTagsStorageKey(user: User | null) {
+  return user?.id
+    ? `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`
+    : `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`;
+}
+
 export function useTags(user: User | null, recipes: Recipe[] = []) {
   const queryClient = useQueryClient();
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const hasHydratedSelectedTags = useRef(false);
+  const isHydratingSelectedTags = useRef(false);
+  const storageKey = getSelectedTagsStorageKey(user);
 
   useEffect(() => {
-    if (!user?.id) {
-      // For guest users, try to load from localStorage
-      try {
-        const stored = localStorage.getItem(
-          `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
-        );
-        if (stored) {
-          setSelectedTags(JSON.parse(stored));
-        } else {
-          setSelectedTags([]);
-        }
-      } catch {
-        // Silently ignore localStorage parse errors
-        setSelectedTags([]);
-      }
-      return;
-    }
-
+    isHydratingSelectedTags.current = true;
     try {
-      const stored = localStorage.getItem(
-        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
-      );
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         setSelectedTags(JSON.parse(stored));
+      } else {
+        setSelectedTags([]);
       }
     } catch {
       // Silently ignore localStorage parse errors
+      setSelectedTags([]);
     }
-  }, [user?.id]);
+    hasHydratedSelectedTags.current = true;
+  }, [storageKey]);
 
   useEffect(() => {
-    if (user?.id) {
-      localStorage.setItem(
-        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-${user.id}`,
-        JSON.stringify(selectedTags),
-      );
-    } else {
-      // Save guest user selected tags
-      localStorage.setItem(
-        `${SELECTED_TAGS_STORAGE_KEY_PREFIX}-guest`,
-        JSON.stringify(selectedTags),
-      );
+    if (!hasHydratedSelectedTags.current) return;
+    if (isHydratingSelectedTags.current) {
+      isHydratingSelectedTags.current = false;
+      return;
     }
-  }, [selectedTags, user?.id]);
 
-  const uniqueTags = useMemo(() => {
+    localStorage.setItem(storageKey, JSON.stringify(selectedTags));
+  }, [selectedTags, storageKey]);
+
+  const uniqueTags = (() => {
     if (!recipes.length) return [];
 
     const map = new Map();
@@ -71,28 +60,17 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
     });
 
     return Array.from(map.values());
-  }, [recipes]);
+  })();
 
-  //Deselects all associated tags if all items are deleted
-  useEffect(() => {
-    setSelectedTags((prev) => {
-      const stillValid = prev.filter((selectedTag) =>
-        uniqueTags.some((uniqueTag) => uniqueTag.id === selectedTag.id),
-      );
-      return stillValid.length === prev.length ? prev : stillValid;
-    });
-  }, [uniqueTags]);
-
-  const tagCounts = useMemo<Partial<Record<Tag["id"], number>>>(() => {
-    if (!recipes.length) return {};
-
-    return recipes.reduce<Partial<Record<Tag["id"], number>>>((acc, recipe) => {
+  const tagCounts = recipes.reduce<Partial<Record<Tag["id"], number>>>(
+    (acc, recipe) => {
       recipe.tags.forEach((tag) => {
         acc[tag.id] = (acc[tag.id] ?? 0) + 1;
       });
       return acc;
-    }, {});
-  }, [recipes]);
+    },
+    {},
+  );
 
   const deleteTagsAllMutation = useMutation({
     mutationFn: async (tagIds: Array<Tag["id"]>) => {
@@ -184,11 +162,7 @@ export function useTags(user: User | null, recipes: Recipe[] = []) {
   function handleTagSelectedClick(tag: Tag) {
     setSelectedTags((prev) => {
       const exists = prev.some((t) => t.id === tag.id);
-      if (exists) {
-        return prev.filter((t) => t.id !== tag.id);
-      } else {
-        return [...prev, tag];
-      }
+      return exists ? prev.filter((t) => t.id !== tag.id) : [...prev, tag];
     });
   }
 
