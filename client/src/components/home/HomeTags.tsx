@@ -86,7 +86,7 @@ function HomeTags({
             <button
               onClick={handleTagDone}
               disabled={isDeletingTags}
-              className="bg-accent hover:bg-accent-hover cursor-pointer rounded-lg px-2 py-1 text-sm text-white transition-colors duration-150"
+              className="interactive-mono text-secondary hover:text-primary decoration-secondary/35 hover:decoration-primary rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase no-underline underline-offset-3 hover:underline"
             >
               Done
             </button>
@@ -101,6 +101,7 @@ function HomeTags({
                 handleNameChange={handleEditDraftTagName}
                 handleColorChange={handleEditDraftTagColor}
                 handleDelete={handleDraftTagDelete}
+                variant="home"
               />
             );
           })}
@@ -119,13 +120,13 @@ function HomeTags({
               setIsEditingTags(true);
             }}
             disabled={isDeletingTags}
-            className="text-secondary hover:text-primary hover:bg-mantle-hover font-ibm-plex-mono cursor-pointer rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase transition-colors duration-150"
+            className="interactive-mono text-secondary hover:text-primary decoration-secondary/35 hover:decoration-primary rounded-full px-3 py-1 text-xs tracking-[0.08em] uppercase no-underline underline-offset-3 hover:underline"
           >
             Edit
           </button>
         )}
       </div>
-      <div className="flex flex-wrap gap-2 py-2">
+      <div className="flex flex-wrap gap-3 py-2">
         {visibleTags.length > 0 ? (
           visibleTags.map((tag) => {
             const count = tagCounts[tag.id] || 0;
@@ -138,14 +139,17 @@ function HomeTags({
                 onClick={() => {
                   handleTagSelectedClick(tag);
                 }}
-                className={`hover:bg-tag-hover focus-visible:ring-accent/30 cursor-pointer focus-visible:ring-2 focus-visible:outline-none ${
+                className={`hover:bg-tag-hover focus-visible:ring-accent/30 cursor-pointer rounded-2xl focus-visible:ring-2 focus-visible:outline-none ${
                   isSelected ? "bg-tag-selected" : ""
                 }`}
                 key={tag.id}
                 color={tag.color}
               >
                 <div>
-                  {tag.name} <span className="text-secondary">({count})</span>
+                  {tag.name}{" "}
+                  <span className="font-ibm-plex-mono text-secondary text-sm">
+                    ({count})
+                  </span>
                 </div>
               </TagChip>
             );

@@ -3,6 +3,7 @@ import RecipeContentIngredients from "./RecipeContentIngredients";
 import RecipeContentInstructions from "./RecipeContentInstructions";
 import RecipeContentNotes from "./RecipeContentNotes";
 import RecipeContentSource from "./RecipeContentSource";
+import RecipeContentTags from "./RecipeContentTags";
 import RecipeContentVersionInfo from "./RecipeContentVersionInfo";
 import { useRecipeCompletion } from "../../../hooks/useRecipeCompletion";
 import type { Recipe, RecipeDetails } from "../../../types/recipe";
@@ -60,6 +61,7 @@ function RecipeContent({ recipe, recipeVersion }: RecipeContentProps) {
         <h1 className="font-lora line-clamp-2 text-3xl leading-snug font-semibold wrap-break-word md:text-4xl">
           {recipe?.title}
         </h1>
+        <RecipeContentTags recipe={recipe} />
         <RecipeContentDetails recipeDetails={recipeDetails} />
         {description ? (
           <p className="max-w-2xl wrap-break-word">{description}</p>

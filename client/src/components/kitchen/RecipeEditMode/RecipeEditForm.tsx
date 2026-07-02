@@ -13,6 +13,7 @@ import RecipeEditDescription from "./RecipeEditDescription";
 import RecipeEditNotes from "./RecipeEditNotes";
 import RecipeEditIngredients from "./RecipeEditIngredients";
 import RecipeEditInstructions from "./RecipeEditInstructions";
+import RecipeEditTags from "./RecipeEditTags";
 import RecipeEditControls from "./RecipeEditControls";
 import RecipeContentVersionInfo from "../RecipeResponse/RecipeContentVersionInfo";
 
@@ -60,12 +61,19 @@ function RecipeEditForm({
   setIsEditing,
   openDeleteModal,
 }: RecipeEditFormProps) {
-  const { updateRecipeMetadataAsync, updateRecipeVersionAsync } =
-    useRecipeMutations();
+  const {
+    updateRecipeMetadataAsync,
+    updateRecipeTagsAsync,
+    updateRecipeVersionAsync,
+  } = useRecipeMutations();
   const {
     draft,
     handleDraftDetail,
     handleDraftString,
+    handleDraftTagName,
+    handleDraftTagColor,
+    handleDraftTagDelete,
+    handleDraftTagAdd,
     handleDraftIngredientUpdate,
     handleDraftInstructionUpdate,
     handleDraftArrayDelete,
@@ -130,7 +138,14 @@ function RecipeEditForm({
       requests.push(updateRecipeVersionAsync(nextVersionUpdate));
     }
 
-    //TO DO: Checks recipe tags differences
+    if (JSON.stringify(draft.tags) !== JSON.stringify(recipe.tags)) {
+      requests.push(
+        updateRecipeTagsAsync({
+          recipeId: recipe.id,
+          tags: draft.tags,
+        }),
+      );
+    }
 
     try {
       await Promise.all(requests);
@@ -144,6 +159,7 @@ function RecipeEditForm({
   const recipeDetails = draft?.recipeDetails || EMPTY_RECIPE_DETAILS;
   const recipeDescription = draft?.description || "";
   const recipeNotes = draft?.notes || "";
+  const recipeTags = draft?.tags || [];
   const recipeIngredients = draft?.ingredients || [];
   const recipeInstructions = draft?.instructions || [];
   return (
@@ -156,6 +172,13 @@ function RecipeEditForm({
         <RecipeEditTitle
           recipeTitle={recipeTitle}
           handleDraftString={handleDraftString}
+        />
+        <RecipeEditTags
+          tags={recipeTags}
+          handleDraftTagName={handleDraftTagName}
+          handleDraftTagColor={handleDraftTagColor}
+          handleDraftTagDelete={handleDraftTagDelete}
+          handleDraftTagAdd={handleDraftTagAdd}
         />
         <RecipeEditDetails
           recipeDetails={recipeDetails}

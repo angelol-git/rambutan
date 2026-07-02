@@ -6,7 +6,6 @@ import AssistantComposer from "../../components/kitchen/AssistantComposer/Assist
 import RecipeEditForm from "../../components/kitchen/RecipeEditMode/RecipeEditForm.jsx";
 import RecipeVersionNavigation from "../../components/kitchen/RecipeVersionNavigation.js";
 import RecipeContent from "../../components/kitchen/RecipeResponse/RecipeContent.js";
-import RecipeContentTags from "../../components/kitchen/RecipeResponse/RecipeContentTags.jsx";
 import { useDeleteRecipe } from "../../hooks/useDeleteRecipe.js";
 import { useRecipes } from "../../hooks/useRecipes";
 import type { Recipe } from "../../types/recipe.js";
@@ -145,7 +144,6 @@ function RecipePage() {
                         className="w-full pt-2"
                         style={{ paddingBottom: "16px" }}
                       >
-                        <RecipeContentTags recipe={currentRecipe} />
                         <RecipeContent
                           recipe={currentRecipe}
                           recipeVersion={recipeVersion}
