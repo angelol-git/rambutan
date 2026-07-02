@@ -1,7 +1,7 @@
 <h1>
   <img
     src="https://github.com/angelol-git/rambutan/blob/main/.github/logo.png?raw=true"
-    width="48"
+    width="42"
     alt="Rambutan logo"
   />
   <span>Rambutan</span>
