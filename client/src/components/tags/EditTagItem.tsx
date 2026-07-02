@@ -39,10 +39,10 @@ function EditTagItem({
       ? "rounded-2xl"
       : "";
   const colorButtonClassName = isKitchenVariant
-    ? "focus-visible:ring-secondary/25 h-3 w-3 shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none"
+    ? "focus-visible:ring-secondary/25 border-secondary/30 h-3 w-3 shrink-0 cursor-pointer rounded-full border focus-visible:ring-2 focus-visible:outline-none"
     : isHomeVariant
-      ? "focus-visible:ring-accent/25 h-3.5 w-3.5 shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none"
-      : "h-3.5 w-3.5 shrink-0 rounded-full";
+      ? "focus-visible:ring-accent/25 border-secondary/30 h-3.5 w-3.5 shrink-0 cursor-pointer rounded-full border focus-visible:ring-2 focus-visible:outline-none"
+      : "border-secondary/30 h-3.5 w-3.5 shrink-0 cursor-pointer rounded-full border";
   const inputClassName = isKitchenVariant
     ? "font-lora text-primary placeholder:text-primary/35 border-primary/10 focus:border-primary/20 min-w-[5ch] border-0 border-b bg-transparent px-0 pb-0.5 text-sm italic outline-none"
     : isHomeVariant
