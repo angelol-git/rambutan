@@ -138,23 +138,6 @@ pnpm format:check
 - Signed-in users persist recipes, tags, sessions, prompts, and recipe versions in SQLite
 - Recipe completion state is stored locally for in-progress cooking checklists
 
-## Benchmarks
-
-Run benchmarks with the server package scripts:
-
-```bash
-pnpm --dir server benchmark:create:text
-pnpm --dir server benchmark:scrape
-pnpm --dir server benchmark:url
-pnpm --dir server benchmark:url-context
-```
-
-Notes:
-
-- `benchmark:create:text` expects the API to already be running unless you provide a custom URL.
-- `benchmark:scrape` and `benchmark:url` fetch live pages and need outbound network access.
-- `benchmark:url-context` requires `GOOGLE_API_KEY` in `server/.env`.
-
 ## Development Notes
 
 - Husky and `lint-staged` are configured at the workspace root
