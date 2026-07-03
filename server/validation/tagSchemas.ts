@@ -41,6 +41,8 @@ export function validateRequest<T extends z.ZodTypeAny>(schema: T) {
         query: Request["query"];
         params: Request["params"];
       };
+      // Apply the parsed values back onto the request so route handlers see Zod
+      // transforms/defaults (for example trimmed strings) instead of raw input.
       req.body = parsed.body;
       req.query = parsed.query;
       req.params = parsed.params;
