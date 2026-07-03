@@ -22,6 +22,14 @@ type RecipeCompletionState = {
 type StoredRecipeCompletionState = Partial<RecipeCompletionState>;
 type StoredRecipeCompletionMap = Record<string, StoredRecipeCompletionState>;
 
+function normalizeTagName(name: string | null | undefined): string {
+  return (name ?? "").trim();
+}
+
+function normalizeTagKey(name: string | null | undefined): string {
+  return normalizeTagName(name).toLowerCase();
+}
+
 function generateTagId(recipes: Recipe[]): number {
   let nextId = 1;
 
@@ -268,9 +276,42 @@ export function updateLocalRecipeTags(
 
   if (existingIndex === -1) return;
 
+  const nextTags: Tag[] = [];
+  const seenTagKeys = new Set<string>();
+
+  // Resolve each incoming tag to a single existing tag by normalized name so
+  // local recipe tag edits reuse shared tags instead of creating duplicates.
+  for (const tag of recipeUpdate.tags || []) {
+    const normalizedName = normalizeTagName(tag.name);
+    const normalizedKey = normalizeTagKey(tag.name);
+
+    if (!normalizedName || seenTagKeys.has(normalizedKey)) {
+      continue;
+    }
+
+    seenTagKeys.add(normalizedKey);
+
+    let sharedTag: Tag | undefined;
+    for (const recipe of recipes) {
+      sharedTag = recipe.tags.find((currentTag) => {
+        return normalizeTagKey(currentTag.name) === normalizedKey;
+      });
+
+      if (sharedTag) {
+        break;
+      }
+    }
+
+    nextTags.push({
+      id: sharedTag?.id ?? tag.id,
+      name: sharedTag?.name ?? normalizedName,
+      color: sharedTag?.color ?? tag.color,
+    });
+  }
+
   recipes[existingIndex] = normalizeStoredRecipe({
     ...recipes[existingIndex],
-    tags: recipeUpdate.tags || [],
+    tags: nextTags,
   });
 
   localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
@@ -301,6 +342,7 @@ export function addLocalRecipeTag(
   recipeId: string,
   newTag: DraftTag,
 ): { success: boolean; error?: string; tag?: Tag } {
+  const normalizedName = normalizeTagName(newTag.name);
   const recipes = getLocalRecipes();
   const recipeIndex = recipes.findIndex((r) => r.id === recipeId);
 
@@ -311,7 +353,7 @@ export function addLocalRecipeTag(
   const recipe = recipes[recipeIndex];
 
   const existingTagOnRecipe = recipe.tags.find(
-    (t) => t.name?.toLowerCase() === newTag.name?.toLowerCase(),
+    (t) => normalizeTagKey(t.name) === normalizeTagKey(normalizedName),
   );
 
   if (existingTagOnRecipe) {
@@ -321,7 +363,7 @@ export function addLocalRecipeTag(
   let tagToUse: Tag | null = null;
   for (const currentRecipe of recipes) {
     const existingTag = currentRecipe.tags.find(
-      (t) => t.name?.toLowerCase() === newTag.name?.toLowerCase(),
+      (t) => normalizeTagKey(t.name) === normalizeTagKey(normalizedName),
     );
     if (existingTag) {
       tagToUse = { ...existingTag };
@@ -332,7 +374,7 @@ export function addLocalRecipeTag(
   if (!tagToUse) {
     tagToUse = {
       id: generateTagId(recipes),
-      name: newTag.name,
+      name: normalizedName,
       color: newTag.color || "#FFB86C",
     };
   }

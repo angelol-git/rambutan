@@ -17,11 +17,54 @@ type UpdateRecipeTagsInput = {
   tags?: TagInput[];
 };
 
+function normalizeTagName(name: string): string {
+  return name.trim();
+}
+
+function findTagByNormalizedName(
+  userId: UserId,
+  name: string,
+  excludeTagId?: number,
+): RecipeTagRow | undefined {
+  const normalizedName = normalizeTagName(name);
+
+  if (!normalizedName) {
+    return undefined;
+  }
+
+  if (excludeTagId !== undefined) {
+    return db
+      .prepare(
+        `SELECT id, name, color
+           FROM tags
+          WHERE user_id = ?
+            AND id != ?
+            AND trim(name) = ? COLLATE NOCASE
+          ORDER BY id
+          LIMIT 1`,
+      )
+      .get(userId, excludeTagId, normalizedName) as RecipeTagRow | undefined;
+  }
+
+  return db
+    .prepare(
+      `SELECT id, name, color
+         FROM tags
+        WHERE user_id = ?
+          AND trim(name) = ? COLLATE NOCASE
+        ORDER BY id
+        LIMIT 1`,
+    )
+    .get(userId, normalizedName) as RecipeTagRow | undefined;
+}
+
 export function createRecipeTag(
   recipeId: RecipeId,
   userId: UserId,
   newTag: NewTagInput,
 ): TagMutationResult {
+  const normalizedName = normalizeTagName(newTag.name);
+
   const recipe = db
     .prepare(`SELECT id FROM recipes WHERE id = ? AND user_id = ?`)
     .get(recipeId, userId) as ExistingTextIdRow | undefined;
@@ -30,18 +73,16 @@ export function createRecipeTag(
     return { success: false, error: "Recipe not found" };
   }
 
-  let tagRow = db
-    .prepare(`SELECT id, name, color FROM tags WHERE user_id = ? AND name = ?`)
-    .get(userId, newTag.name) as RecipeTagRow | undefined;
+  let tagRow = findTagByNormalizedName(userId, normalizedName);
 
   if (!tagRow) {
     const result = db
       .prepare(`INSERT INTO tags (user_id, name, color) VALUES (?, ?, ?)`)
-      .run(userId, newTag.name, newTag.color);
+      .run(userId, normalizedName, newTag.color);
 
     tagRow = {
       id: Number(result.lastInsertRowid),
-      name: newTag.name,
+      name: normalizedName,
       color: newTag.color,
     };
   }
@@ -89,26 +130,54 @@ export function updateRecipeTags(
   updatedRecipe: UpdateRecipeTagsInput,
 ): UpdateRecipeResult {
   const resolvedTagIds: number[] = [];
+  const seenNames = new Set<string>();
 
+  // Resolve each incoming tag to a single existing user-owned tag by normalized
+  // name so recipe tag edits reuse shared tags instead of creating duplicates.
   for (const tag of updatedRecipe.tags ?? []) {
+    const normalizedName = normalizeTagName(tag.name);
+    const normalizedKey = normalizedName.toLowerCase();
+
+    if (!normalizedName || seenNames.has(normalizedKey)) {
+      continue;
+    }
+
+    seenNames.add(normalizedKey);
+
     const existingTagById = db
       .prepare(`SELECT id FROM tags WHERE id = ? AND user_id = ?`)
       .get(tag.id, userId) as { id: number } | undefined;
 
     if (existingTagById) {
+      const conflictingTag = findTagByNormalizedName(
+        userId,
+        normalizedName,
+        existingTagById.id,
+      );
+
+      //Tag name already exists only update the color
+      if (conflictingTag) {
+        db.prepare(
+          `UPDATE tags
+             SET color = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ? AND user_id = ?`,
+        ).run(tag.color, conflictingTag.id, userId);
+        resolvedTagIds.push(conflictingTag.id);
+        continue;
+      }
+
+      //Tag name does not exists update name and color
       db.prepare(
         `UPDATE tags
            SET name = ?, color = ?, updated_at = CURRENT_TIMESTAMP
            WHERE id = ? AND user_id = ?`,
-      ).run(tag.name, tag.color, existingTagById.id, userId);
+      ).run(normalizedName, tag.color, existingTagById.id, userId);
 
       resolvedTagIds.push(existingTagById.id);
       continue;
     }
 
-    const existingTagByName = db
-      .prepare(`SELECT id FROM tags WHERE user_id = ? AND name = ?`)
-      .get(userId, tag.name) as { id: number } | undefined;
+    const existingTagByName = findTagByNormalizedName(userId, normalizedName);
 
     if (existingTagByName) {
       db.prepare(
@@ -122,7 +191,7 @@ export function updateRecipeTags(
 
     const insertResult = db
       .prepare(`INSERT INTO tags (user_id, name, color) VALUES (?, ?, ?)`)
-      .run(userId, tag.name, tag.color);
+      .run(userId, normalizedName, tag.color);
 
     resolvedTagIds.push(Number(insertResult.lastInsertRowid));
   }
