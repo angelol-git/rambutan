@@ -80,8 +80,8 @@ export type UpdateRecipeVersionInput = {
   source: RecipeSource | null;
 };
 
-export type UpdateRecipeInput = UpdateRecipeMetadataInput &
-  UpdateRecipeTagsInput &
+export type UpdateRecipeInput = Omit<UpdateRecipeMetadataInput, "recipeId"> &
+  Omit<UpdateRecipeTagsInput, "recipeId"> &
   Omit<UpdateRecipeVersionInput, "recipeId" | "versionId"> & {
     id: string;
     recipe_id: string;

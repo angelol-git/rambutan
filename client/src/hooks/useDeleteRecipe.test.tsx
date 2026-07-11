@@ -6,6 +6,7 @@ const mockNavigate = vi.fn();
 const mockDeleteRecipe = vi.fn();
 const mockDeleteRecipeVersion = vi.fn();
 const mockOnDeleteVersion = vi.fn();
+const mockShowToast = vi.fn();
 
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
@@ -13,8 +14,14 @@ vi.mock("react-router", () => ({
 
 vi.mock("./useRecipes", () => ({
   useRecipeMutations: () => ({
-    deleteRecipe: mockDeleteRecipe,
-    deleteRecipeVersion: mockDeleteRecipeVersion,
+    deleteRecipeAsync: mockDeleteRecipe,
+    deleteRecipeVersionAsync: mockDeleteRecipeVersion,
+  }),
+}));
+
+vi.mock("./useToast", () => ({
+  useToast: () => ({
+    showToast: mockShowToast,
   }),
 }));
 
@@ -26,14 +33,38 @@ const recipe: Recipe = {
     {
       id: "version-1",
       description: "Original version",
-      ingredients: ["pasta", "salt"],
-      instructions: ["Boil water", "Cook pasta"],
+      notes: "",
+      ingredients: [
+        {
+          id: "ingredient-1",
+          position: 1,
+          raw_text: "pasta",
+          completed: false,
+          ingredient_name: "pasta",
+          quantity_value: null,
+          quantity_text: null,
+          unit: null,
+          alternate_quantity_value: null,
+          alternate_quantity_text: null,
+          alternate_unit: null,
+          note: null,
+          is_optional: false,
+        },
+      ],
+      instructions: [
+        {
+          id: "instruction-1",
+          position: 1,
+          raw_text: "Boil water",
+          completed: false,
+        },
+      ],
       recipeDetails: {
         calories: null,
         servings: 2,
         total_time: 20,
       },
-      source_prompt: "",
+      source: null,
     },
   ],
   created_at: null,
@@ -46,14 +77,38 @@ const multiVersionRecipe: Recipe = {
     {
       id: "version-2",
       description: "version 2",
-      ingredients: ["pasta", "salt"],
-      instructions: ["Boil water", "Cook pasta"],
+      notes: "",
+      ingredients: [
+        {
+          id: "ingredient-3",
+          position: 1,
+          raw_text: "pasta",
+          completed: false,
+          ingredient_name: "pasta",
+          quantity_value: null,
+          quantity_text: null,
+          unit: null,
+          alternate_quantity_value: null,
+          alternate_quantity_text: null,
+          alternate_unit: null,
+          note: null,
+          is_optional: false,
+        },
+      ],
+      instructions: [
+        {
+          id: "instruction-3",
+          position: 1,
+          raw_text: "Boil water",
+          completed: false,
+        },
+      ],
       recipeDetails: {
         calories: null,
         servings: 2,
         total_time: 20,
       },
-      source_prompt: "",
+      source: null,
     },
   ],
 };
@@ -63,13 +118,16 @@ describe("useDeleteRecipe", () => {
     vi.clearAllMocks();
   });
 
-  it("opens and closes the delete modal", () => {
+  it("opens the delete modal and closes it", () => {
+    // Arrange
     const { result } = renderHook(() => useDeleteRecipe());
 
+    // Act
     act(() => {
       result.current.openDeleteModal(recipe, "all");
     });
 
+    // Assert
     expect(result.current.deleteModal).toEqual({
       isOpen: true,
       type: "all",
@@ -77,10 +135,12 @@ describe("useDeleteRecipe", () => {
       recipeVersion: null,
     });
 
+    // Act
     act(() => {
       result.current.closeDeleteModal();
     });
 
+    // Assert
     expect(result.current.deleteModal).toEqual({
       isOpen: false,
       type: "all",
@@ -89,17 +149,20 @@ describe("useDeleteRecipe", () => {
     });
   });
 
-  it("deletes the full recipe, navigates, and closes the modal for type all", () => {
+  it("deletes the full recipe, navigates, and closes the modal for type all", async () => {
+    // Arrange
     const { result } = renderHook(() => useDeleteRecipe());
 
     act(() => {
       result.current.openDeleteModal(recipe, "all");
     });
 
-    act(() => {
-      result.current.handleDelete();
+    // Act
+    await act(async () => {
+      await result.current.handleDelete();
     });
 
+    // Assert
     expect(mockDeleteRecipe).toHaveBeenCalledWith("recipe-1");
     expect(mockDeleteRecipeVersion).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/");
@@ -112,7 +175,8 @@ describe("useDeleteRecipe", () => {
     });
   });
 
-  it("deletes the recipe version and returns to the previous version", () => {
+  it("deletes the recipe version and returns to the previous version", async () => {
+    // Arrange
     const { result } = renderHook(() =>
       useDeleteRecipe({
         onDeleteVersion: mockOnDeleteVersion,
@@ -123,10 +187,12 @@ describe("useDeleteRecipe", () => {
       result.current.openDeleteModal(multiVersionRecipe, "version", 1);
     });
 
-    act(() => {
-      result.current.handleDelete();
+    // Act
+    await act(async () => {
+      await result.current.handleDelete();
     });
 
+    // Assert
     expect(mockDeleteRecipe).not.toHaveBeenCalledWith();
     expect(mockDeleteRecipeVersion).toHaveBeenCalledWith({
       recipeId: "recipe-1",

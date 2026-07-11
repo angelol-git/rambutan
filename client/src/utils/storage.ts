@@ -1,7 +1,4 @@
-import {
-  normalizeStoredRecipe,
-  normalizeStoredRecipes,
-} from "./normalizeStoredRecipe";
+import { parseStoredRecipe, parseStoredRecipes } from "./parseStoredRecipe";
 import type {
   Recipe,
   UpdateRecipeInput,
@@ -144,7 +141,7 @@ export function getLocalRecipes(): Recipe[] {
     }
 
     //TO DO: currently sorted by latest first for guest users
-    const normalizedRecipes = normalizeStoredRecipes(parsed);
+    const normalizedRecipes = parseStoredRecipes(parsed);
     normalizedRecipes.sort((left, right) => {
       const leftTimestamp = Date.parse(left.created_at ?? "");
       const rightTimestamp = Date.parse(right.created_at ?? "");
@@ -177,7 +174,7 @@ export function getLocalRecipes(): Recipe[] {
 
 export function addLocalRecipe(recipe: Recipe): Recipe {
   const recipes = getLocalRecipes();
-  const normalizedRecipe = normalizeStoredRecipe(recipe);
+  const normalizedRecipe = parseStoredRecipe(recipe);
   recipes.push(normalizedRecipe);
   localStorage.setItem(GUEST_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
   return normalizedRecipe;
@@ -185,7 +182,7 @@ export function addLocalRecipe(recipe: Recipe): Recipe {
 
 export function addLocalRecipeVersion(recipe: Recipe): Recipe {
   const recipes = getLocalRecipes();
-  const normalizedRecipe = normalizeStoredRecipe(recipe);
+  const normalizedRecipe = parseStoredRecipe(recipe);
   const existingIndex = recipes.findIndex((r) => r.id === normalizedRecipe.id);
 
   if (existingIndex !== -1 && normalizedRecipe.versions.length > 0) {
@@ -229,7 +226,7 @@ export function updateLocalRecipeMetadata(
 
   if (existingIndex === -1) return;
 
-  recipes[existingIndex] = normalizeStoredRecipe({
+  recipes[existingIndex] = parseStoredRecipe({
     ...recipes[existingIndex],
     title: recipeUpdate.title,
   });
@@ -309,7 +306,7 @@ export function updateLocalRecipeTags(
     });
   }
 
-  recipes[existingIndex] = normalizeStoredRecipe({
+  recipes[existingIndex] = parseStoredRecipe({
     ...recipes[existingIndex],
     tags: nextTags,
   });
