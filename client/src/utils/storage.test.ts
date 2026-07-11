@@ -154,6 +154,7 @@ describe("getLocalRecipes", () => {
   });
 
   it("clears localStorage when the stored data is not an array", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     localStorage.setItem(
       GUEST_RECIPES_STORAGE_KEY,
       JSON.stringify({ id: "recipe-1" }),
@@ -163,6 +164,8 @@ describe("getLocalRecipes", () => {
 
     expect(recipes).toEqual([]);
     expect(localStorage.getItem(GUEST_RECIPES_STORAGE_KEY)).toBeNull();
+
+    vi.restoreAllMocks();
   });
 });
 
