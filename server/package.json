@@ -6,6 +6,9 @@
   "author": "",
   "type": "module",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsx watch server.ts",
     "migrate": "tsx database/runMigrations.ts",
