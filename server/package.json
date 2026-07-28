@@ -8,7 +8,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch server.ts",
-    "migrate": "tsx scripts/runMigrations.ts",
+    "migrate": "tsx database/runMigrations.ts",
     "build": "tsc",
     "lint": "../client/node_modules/.bin/eslint .",
     "start": "node dist/server.js",
