@@ -145,16 +145,13 @@ export function validateRequest<T extends z.ZodTypeAny>(schema: T) {
         body: req.body,
         query: req.query,
         params: req.params,
-      }) as {
-        body: Request["body"];
-        query: Request["query"];
-        params: Request["params"];
-      };
-      // Apply the parsed values back onto the request so route handlers see Zod
-      // transforms/defaults (for example trimmed strings) instead of raw input.
-      req.body = parsed.body;
-      req.query = parsed.query;
-      req.params = parsed.params;
+      }) as { body?: Request["body"] };
+      // `req.query` is a read-only getter in Express 5, so it cannot be
+      // replaced with parsed values. These schemas validate request bodies;
+      // write the parsed body back so handlers receive Zod transforms/defaults.
+      if ("body" in parsed) {
+        req.body = parsed.body;
+      }
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
