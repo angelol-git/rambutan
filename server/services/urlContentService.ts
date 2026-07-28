@@ -25,7 +25,7 @@ type UrlExtractionResult = string | JsonLdNode;
 
 export async function getUrlContext(url: string): Promise<string> {
   const normalizedUrl = normalizeUrl(url);
-  const existingURL = checkURL(normalizedUrl);
+  const existingURL = await checkURL(normalizedUrl);
 
   if (existingURL.success) {
     return existingURL.urlContent.content;
@@ -43,7 +43,7 @@ export async function getUrlContext(url: string): Promise<string> {
     now.getTime() + URL_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000,
   ).toISOString();
 
-  saveURLContent(normalizedUrl, url, urlContent, fetchedAt, expiresAt);
+  await saveURLContent(normalizedUrl, url, urlContent, fetchedAt, expiresAt);
 
   return contextData;
 }
@@ -125,7 +125,9 @@ function parseJsonLd($: CheerioAPI): JsonLdNode | null {
           return false;
         }
       }
-    } catch {}
+    } catch {
+      /* empty */
+    }
   });
 
   return result;

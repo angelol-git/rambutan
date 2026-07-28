@@ -1,17 +1,4 @@
-import db from "../db.js";
-import type {
-  CountRow,
-  IngredientRow,
-  InstructionRow,
-  RecipeId,
-  RecipeRow,
-  RecipeTagAssociationRow,
-  RecipeTagRow,
-  RecipeVersionRow,
-  SortOrder,
-  UserId,
-  VersionId,
-} from "./db.types.js";
+import { postgresDb } from "../database/db.js";
 import type {
   Recipe,
   RecipeIngredient,
@@ -23,12 +10,7 @@ import type {
 import type { UpdateRecipeMetadataBody } from "../validation/recipeSchemas.js";
 
 type UpdateRecipeMetadataInput = UpdateRecipeMetadataBody["updatedRecipe"];
-
-type GetRecipesByUserIdOptions = {
-  page: number;
-  pageSize: number;
-};
-
+type GetRecipesByUserIdOptions = { page: number; pageSize: number };
 type PaginatedRecipesResult = {
   items: Recipe[];
   page: number;
@@ -36,37 +18,31 @@ type PaginatedRecipesResult = {
   totalItems: number;
   totalPages: number;
 };
-
 type UpdateRecipeMetadataResult =
   | { success: true }
   | { success: false; error: string };
 
-export function getRecipesByUserId(
-  userId: UserId,
+export async function getRecipesByUserId(
+  userId: string,
   { page, pageSize }: GetRecipesByUserIdOptions,
-): PaginatedRecipesResult {
+): Promise<PaginatedRecipesResult> {
   const offset = (page - 1) * pageSize;
-
-  const totalRow = db
-    .prepare(
-      `SELECT COUNT(*) as count
-      FROM recipes
-      WHERE user_id = ?`,
-    )
-    .get(userId) as CountRow | undefined;
-
-  const totalItems = totalRow?.count ?? 0;
-  const totalPages = Math.ceil(totalItems / pageSize);
-
-  const recipes = db
-    .prepare(
-      `SELECT id, title, created_at
-       FROM recipes
-       WHERE user_id = ?
-       ORDER BY created_at DESC
-       LIMIT ? OFFSET ?`,
-    )
-    .all(userId, pageSize, offset) as RecipeRow[];
+  const [total, recipes] = await Promise.all([
+    postgresDb
+      .selectFrom("recipes")
+      .select((eb) => eb.fn.countAll<number>().as("count"))
+      .where("user_id", "=", userId)
+      .executeTakeFirstOrThrow(),
+    postgresDb
+      .selectFrom("recipes")
+      .select(["id", "title", "created_at"])
+      .where("user_id", "=", userId)
+      .orderBy("created_at", "desc")
+      .limit(pageSize)
+      .offset(offset)
+      .execute(),
+  ]);
+  const totalItems = Number(total.count);
 
   if (recipes.length === 0) {
     return {
@@ -74,193 +50,183 @@ export function getRecipesByUserId(
       page,
       pageSize,
       totalItems,
-      totalPages,
+      totalPages: Math.ceil(totalItems / pageSize),
     };
   }
 
   const recipeIds = recipes.map((recipe) => recipe.id);
-
-  const versions = db
-    .prepare(
-      `SELECT id, recipe_id, version_number, servings, total_time, calories,
-              description, notes, source_type, source_value, source_summary, ai_model, created_at
-       FROM recipe_versions
-       WHERE recipe_id IN (${recipeIds.map(() => "?").join(", ")})
-       ORDER BY recipe_id ASC, version_number ASC`,
-    )
-    .all(...recipeIds) as RecipeVersionRow[];
-
+  const [versions, tags] = await Promise.all([
+    postgresDb
+      .selectFrom("recipe_versions")
+      .select([
+        "id",
+        "recipe_id",
+        "version_number",
+        "servings",
+        "total_time",
+        "calories",
+        "description",
+        "notes",
+        "source_type",
+        "source_value",
+        "source_summary",
+        "ai_model",
+        "created_at",
+      ])
+      .where("recipe_id", "in", recipeIds)
+      .orderBy("recipe_id")
+      .orderBy("version_number")
+      .execute(),
+    postgresDb
+      .selectFrom("recipe_tags as rt")
+      .innerJoin("tags as t", "t.id", "rt.tag_id")
+      .select(["rt.recipe_id", "t.id", "t.name", "t.color"])
+      .where("rt.recipe_id", "in", recipeIds)
+      .execute(),
+  ]);
   const versionIds = versions.map((version) => version.id);
-  const ingredientsMap = getVersionIngredientsMap(versionIds);
-  const instructionsMap = getVersionInstructionsMap(versionIds);
-
-  const tags = db
-    .prepare(
-      `SELECT rt.recipe_id, t.id, t.name, t.color
-       FROM recipe_tags rt
-       JOIN tags t ON t.id = rt.tag_id
-       WHERE rt.recipe_id IN (${recipeIds.map(() => "?").join(", ")})`,
-    )
-    .all(...recipeIds) as RecipeTagAssociationRow[];
-
-  const mappedVersions = mapRecipeVersions(
+  const [ingredientsMap, instructionsMap] = await Promise.all([
+    getVersionIngredientsMap(versionIds),
+    getVersionInstructionsMap(versionIds),
+  ]);
+  const versionsMap = new Map<string, RecipeVersion[]>();
+  for (const version of mapRecipeVersions(
     versions,
     ingredientsMap,
     instructionsMap,
-  );
-  const versionsMap = new Map<RecipeId, RecipeVersion[]>();
-  for (const [index, version] of versions.entries()) {
+  )) {
     const recipeVersions = versionsMap.get(version.recipe_id) ?? [];
-    recipeVersions.push(mappedVersions[index]);
+    recipeVersions.push(version.recipe);
     versionsMap.set(version.recipe_id, recipeVersions);
   }
-
-  const tagsMap = new Map<RecipeId, RecipeTag[]>();
+  const tagsMap = new Map<string, RecipeTag[]>();
   for (const tag of tags) {
     const recipeTags = tagsMap.get(tag.recipe_id) ?? [];
-    recipeTags.push(toRecipeTag(tag));
+    recipeTags.push({ id: tag.id, name: tag.name, color: tag.color });
     tagsMap.set(tag.recipe_id, recipeTags);
   }
-
-  const items = recipes.map((recipe) => ({
-    id: recipe.id,
-    title: recipe.title ?? "",
-    created_at: recipe.created_at,
-    versions: versionsMap.get(recipe.id) ?? [],
-    tags: tagsMap.get(recipe.id) ?? [],
-  }));
-
   return {
-    items,
+    items: recipes.map((recipe) => ({
+      id: recipe.id,
+      title: recipe.title,
+      created_at: recipe.created_at.toISOString(),
+      versions: versionsMap.get(recipe.id) ?? [],
+      tags: tagsMap.get(recipe.id) ?? [],
+    })),
     page,
     pageSize,
     totalItems,
-    totalPages,
+    totalPages: Math.ceil(totalItems / pageSize),
   };
 }
 
-export function getRecipeById(id: RecipeId, userId: UserId): Recipe | null {
-  return buildRecipeResponse(id, userId, "ASC");
-}
+export async function getRecipeById(
+  id: string,
+  userId: string,
+): Promise<Recipe | null> {
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select(["id", "title", "created_at"])
+    .where("id", "=", id)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe) return null;
 
-export function deleteRecipe(id: RecipeId, userId: UserId): boolean {
-  const result = db
-    .prepare(`DELETE FROM recipes WHERE id = ? AND user_id = ?`)
-    .run(id, userId);
-  return result.changes > 0;
-}
-
-export function updateRecipeMetadata(
-  id: RecipeId,
-  userId: UserId,
-  updatedRecipe: UpdateRecipeMetadataInput,
-): UpdateRecipeMetadataResult {
-  return db.transaction((): UpdateRecipeMetadataResult => {
-    const updated = db
-      .prepare(
-        `UPDATE recipes
-         SET title = ?, updated_at = CURRENT_TIMESTAMP
-         WHERE id = ? AND user_id = ?
-         RETURNING id`,
-      )
-      .get(updatedRecipe.title, id, userId);
-
-    if (!updated) {
-      return { success: false, error: "Recipe not found" };
-    }
-
-    return { success: true };
-  })();
-}
-
-function toRecipeTag(tag: RecipeTagRow): RecipeTag {
+  const [tags, versions] = await Promise.all([
+    postgresDb
+      .selectFrom("recipe_tags as rt")
+      .innerJoin("tags as t", "t.id", "rt.tag_id")
+      .select(["t.id", "t.name", "t.color"])
+      .where("rt.recipe_id", "=", id)
+      .orderBy("t.id")
+      .execute(),
+    getRecipeVersions(id),
+  ]);
   return {
-    id: tag.id,
-    name: tag.name,
-    color: tag.color,
+    id: recipe.id,
+    title: recipe.title,
+    created_at: recipe.created_at.toISOString(),
+    tags,
+    versions,
   };
 }
 
-function normalizeOrder(order: SortOrder): SortOrder {
-  return order === "DESC" ? "DESC" : "ASC";
+export async function deleteRecipe(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  const deleted = await postgresDb
+    .deleteFrom("recipes")
+    .where("id", "=", id)
+    .where("user_id", "=", userId)
+    .returning("id")
+    .executeTakeFirst();
+  return deleted !== undefined;
 }
 
-function getRecipeTags(recipeId: RecipeId): RecipeTag[] {
-  const tags = db
-    .prepare(
-      `SELECT t.id, t.name, t.color
-       FROM recipe_tags rt
-       JOIN tags t ON t.id = rt.tag_id
-       WHERE rt.recipe_id = ?
-       ORDER BY t.id ASC`,
-    )
-    .all(recipeId) as RecipeTagRow[];
-
-  return tags.map(toRecipeTag);
+export async function updateRecipeMetadata(
+  id: string,
+  userId: string,
+  updatedRecipe: UpdateRecipeMetadataInput,
+): Promise<UpdateRecipeMetadataResult> {
+  const updated = await postgresDb
+    .updateTable("recipes")
+    .set({ title: updatedRecipe.title, updated_at: new Date() })
+    .where("id", "=", id)
+    .where("user_id", "=", userId)
+    .returning("id")
+    .executeTakeFirst();
+  return updated
+    ? { success: true }
+    : { success: false, error: "Recipe not found" };
 }
 
-function getVersionIngredientsMap(
-  versionIds: VersionId[],
-): Map<VersionId, RecipeIngredient[]> {
-  const ingredientsMap = new Map<VersionId, RecipeIngredient[]>();
-
-  if (versionIds.length === 0) {
-    return ingredientsMap;
-  }
-
-  const rows = db
-    .prepare(
-      `SELECT id, recipe_version_id, position, raw_text, ingredient_name,
-              quantity_value, quantity_text, unit,
-              alternate_quantity_value, alternate_quantity_text, alternate_unit,
-              note, is_optional
-       FROM recipe_version_ingredients
-       WHERE recipe_version_id IN (${versionIds.map(() => "?").join(", ")})
-       ORDER BY recipe_version_id ASC, position ASC`,
-    )
-    .all(...versionIds) as IngredientRow[];
-
+async function getVersionIngredientsMap(
+  versionIds: string[],
+): Promise<Map<string, RecipeIngredient[]>> {
+  const ingredientsMap = new Map<string, RecipeIngredient[]>();
+  if (!versionIds.length) return ingredientsMap;
+  const rows = await postgresDb
+    .selectFrom("recipe_version_ingredients")
+    .select([
+      "id",
+      "recipe_version_id",
+      "position",
+      "raw_text",
+      "ingredient_name",
+      "quantity_value",
+      "quantity_text",
+      "unit",
+      "alternate_quantity_value",
+      "alternate_quantity_text",
+      "alternate_unit",
+      "note",
+      "is_optional",
+    ])
+    .where("recipe_version_id", "in", versionIds)
+    .orderBy("recipe_version_id")
+    .orderBy("position")
+    .execute();
   for (const row of rows) {
     const ingredients = ingredientsMap.get(row.recipe_version_id) ?? [];
-    ingredients.push({
-      id: row.id,
-      position: row.position,
-      raw_text: row.raw_text,
-      completed: false,
-      ingredient_name: row.ingredient_name,
-      quantity_value: row.quantity_value ?? null,
-      quantity_text: row.quantity_text ?? null,
-      unit: row.unit ?? null,
-      alternate_quantity_value: row.alternate_quantity_value ?? null,
-      alternate_quantity_text: row.alternate_quantity_text ?? null,
-      alternate_unit: row.alternate_unit ?? null,
-      note: row.note ?? null,
-      is_optional: Boolean(row.is_optional),
-    });
+    ingredients.push({ ...row, completed: false });
     ingredientsMap.set(row.recipe_version_id, ingredients);
   }
-
   return ingredientsMap;
 }
 
-function getVersionInstructionsMap(
-  versionIds: VersionId[],
-): Map<VersionId, RecipeInstruction[]> {
-  const instructionsMap = new Map<VersionId, RecipeInstruction[]>();
-
-  if (versionIds.length === 0) {
-    return instructionsMap;
-  }
-
-  const rows = db
-    .prepare(
-      `SELECT id, recipe_version_id, position, raw_text
-       FROM recipe_version_steps
-       WHERE recipe_version_id IN (${versionIds.map(() => "?").join(", ")})
-       ORDER BY recipe_version_id ASC, position ASC`,
-    )
-    .all(...versionIds) as InstructionRow[];
-
+async function getVersionInstructionsMap(
+  versionIds: string[],
+): Promise<Map<string, RecipeInstruction[]>> {
+  const instructionsMap = new Map<string, RecipeInstruction[]>();
+  if (!versionIds.length) return instructionsMap;
+  const rows = await postgresDb
+    .selectFrom("recipe_version_steps")
+    .select(["id", "recipe_version_id", "position", "raw_text"])
+    .where("recipe_version_id", "in", versionIds)
+    .orderBy("recipe_version_id")
+    .orderBy("position")
+    .execute();
   for (const row of rows) {
     const instructions = instructionsMap.get(row.recipe_version_id) ?? [];
     instructions.push({
@@ -271,91 +237,94 @@ function getVersionInstructionsMap(
     });
     instructionsMap.set(row.recipe_version_id, instructions);
   }
-
   return instructionsMap;
 }
 
+async function getRecipeVersions(
+  recipeId: string,
+  order: "ASC" | "DESC" = "ASC",
+): Promise<RecipeVersion[]> {
+  const versions = await postgresDb
+    .selectFrom("recipe_versions")
+    .select([
+      "id",
+      "recipe_id",
+      "version_number",
+      "servings",
+      "total_time",
+      "calories",
+      "description",
+      "notes",
+      "source_type",
+      "source_value",
+      "source_summary",
+      "ai_model",
+      "created_at",
+    ])
+    .where("recipe_id", "=", recipeId)
+    .orderBy("version_number", order === "DESC" ? "desc" : "asc")
+    .execute();
+  const versionIds = versions.map((version) => version.id);
+  const [ingredientsMap, instructionsMap] = await Promise.all([
+    getVersionIngredientsMap(versionIds),
+    getVersionInstructionsMap(versionIds),
+  ]);
+  return mapRecipeVersions(versions, ingredientsMap, instructionsMap).map(
+    ({ recipe }) => recipe,
+  );
+}
+
 function mapRecipeVersions(
-  versions: RecipeVersionRow[],
-  ingredientsMap: Map<VersionId, RecipeIngredient[]>,
-  instructionsMap: Map<VersionId, RecipeInstruction[]>,
-): RecipeVersion[] {
+  versions: Array<{
+    id: string;
+    recipe_id: string;
+    version_number: number;
+    servings: number | null;
+    total_time: number | null;
+    calories: number | null;
+    description: string | null;
+    notes: string | null;
+    source_type: "url" | "instruction" | "raw_text" | null;
+    source_value: string | null;
+    source_summary: string | null;
+    ai_model: string | null;
+    created_at: Date;
+  }>,
+  ingredientsMap: Map<string, RecipeIngredient[]>,
+  instructionsMap: Map<string, RecipeInstruction[]>,
+): Array<{ recipe_id: string; recipe: RecipeVersion }> {
   return versions.map((version) => ({
-    id: version.id,
-    recipeDetails: {
-      calories: version.calories ?? null,
-      servings: version.servings ?? null,
-      total_time: version.total_time ?? null,
+    recipe_id: version.recipe_id,
+    recipe: {
+      id: version.id,
+      recipeDetails: {
+        calories: version.calories,
+        servings: version.servings,
+        total_time: version.total_time,
+      },
+      description: version.description ?? "",
+      notes: version.notes ?? "",
+      instructions: instructionsMap.get(version.id) ?? [],
+      ingredients: ingredientsMap.get(version.id) ?? [],
+      source: toRecipeSource(version),
+      ai_model: version.ai_model,
+      created_at: version.created_at.toISOString(),
+      version_number: version.version_number,
     },
-    description: version.description ?? "",
-    notes: version.notes ?? "",
-    instructions: instructionsMap.get(version.id) ?? [],
-    ingredients: ingredientsMap.get(version.id) ?? [],
-    source: toRecipeSource(version),
-    ai_model: version.ai_model ?? null,
-    created_at: version.created_at,
-    version_number: version.version_number,
   }));
 }
 
-function getRecipeVersions(
-  recipeId: RecipeId,
-  order: SortOrder = "ASC",
-): RecipeVersion[] {
-  const normalizedOrder = normalizeOrder(order);
-
-  const versions = db
-    .prepare(
-      `SELECT id, recipe_id, version_number, servings, total_time, calories,
-              description, notes, source_type, source_value, source_summary, ai_model, created_at
-       FROM recipe_versions
-       WHERE recipe_id = ?
-       ORDER BY version_number ${normalizedOrder}`,
-    )
-    .all(recipeId) as RecipeVersionRow[];
-
-  const versionIds = versions.map((version) => version.id);
-  const ingredientsMap = getVersionIngredientsMap(versionIds);
-  const instructionsMap = getVersionInstructionsMap(versionIds);
-
-  return mapRecipeVersions(versions, ingredientsMap, instructionsMap);
-}
-
-function buildRecipeResponse(
-  id: RecipeId,
-  userId: UserId,
-  versionOrder: SortOrder = "ASC",
-): Recipe | null {
-  const recipe = db
-    .prepare(
-      `SELECT id, title, created_at
-       FROM recipes
-       WHERE id = ? AND user_id = ?`,
-    )
-    .get(id, userId) as RecipeRow | undefined;
-
-  if (!recipe) {
-    return null;
-  }
-
-  return {
-    id: recipe.id,
-    title: recipe.title ?? "",
-    created_at: recipe.created_at,
-    tags: getRecipeTags(id),
-    versions: getRecipeVersions(id, versionOrder),
-  };
-}
-
-function toRecipeSource(version: RecipeVersionRow): RecipeSource | null {
+function toRecipeSource(version: {
+  source_type: "url" | "instruction" | "raw_text" | null;
+  source_value: string | null;
+  source_summary: string | null;
+}): RecipeSource | null {
   if (
-    version.source_type == null ||
-    version.source_value == null ||
-    version.source_summary == null
-  ) {
+    version.source_type === null ||
+    version.source_value === null ||
+    version.source_summary === null
+  )
     return null;
-  }
-
   return {
     type: version.source_type,
     value: version.source_value,

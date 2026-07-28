@@ -20,7 +20,7 @@ Recipe manager app for importing, organizing, editing, and generating recipes.
 ## Tech Stack
 
 - Frontend: React 19, Vite 7, Tailwind CSS 4, React Router 7, TanStack Query 5, `@dnd-kit`, Vitest
-- Backend: Node.js, Express 5, TypeScript, SQLite, Google GenAI API, Cheerio, Google OAuth 2.0, Zod
+- Backend: Node.js, Express 5, TypeScript, PostgreSQL, Kysely, Google GenAI API, Cheerio, Google OAuth 2.0, Zod
 
 ## Project Structure
 
@@ -31,7 +31,7 @@ Recipe manager app for importing, organizing, editing, and generating recipes.
 │   ├── src/components/      # UI, editor, assistant, and tag components
 │   ├── src/hooks/           # Data-fetching and local state hooks
 │   └── src/api/             # Frontend API clients
-├── server/                  # Express API and SQLite app
+├── server/                  # Express API and PostgreSQL app
 │   ├── routes/              # auth, recipes, kitchen, tags
 │   ├── services/            # AI, recipe, message, tag, and URL services
 │   ├── migrations/          # Database schema migrations
@@ -135,7 +135,7 @@ pnpm format:check
 ## Data Behavior
 
 - Guests can create and edit recipes in browser local storage
-- Signed-in users persist recipes, tags, sessions, prompts, and recipe versions in SQLite
+- Signed-in users persist recipes, tags, sessions, prompts, and recipe versions in PostgreSQL
 - Recipe completion state is stored locally for in-progress cooking checklists
 
 ## Development Notes

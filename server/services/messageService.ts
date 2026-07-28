@@ -1,16 +1,7 @@
-import db from "../db.js";
+import { postgresDb } from "../database/db.js";
 import type { ParsedAiRecipe } from "./aiService.js";
-import type {
-  AskMessageRow,
-  ErrorMessageRow,
-  ExistingNumericIdRow,
-  RecipeId,
-  UserId,
-  VersionId,
-} from "./db.types.js";
 
 type JsonRecord = Record<string, unknown>;
-type AskMessage = Omit<AskMessageRow, "recipe_id">;
 type StoredAiError = JsonRecord & {
   ai_model?: string;
   source_input?: string;
@@ -19,7 +10,16 @@ type StoredAiError = JsonRecord & {
   raw?: unknown;
 };
 
-type RecipeError = {
+export type AskMessage = {
+  id: number;
+  user_id: string;
+  role: string;
+  content: string;
+  status: string | null;
+  created_at: string;
+};
+
+export type RecipeError = {
   id: number;
   status: string | null;
   created_at: string;
@@ -30,68 +30,85 @@ type RecipeError = {
   raw?: unknown;
 };
 
-export function saveUserPrompt(
-  userId: UserId,
-  recipeId: RecipeId | null | undefined,
+export async function saveUserPrompt(
+  userId: string,
+  recipeId: string | null | undefined,
   prompt: string,
-): void {
-  db.prepare(
-    `INSERT INTO messages (user_id, recipe_id, role, content, status)
-     VALUES (?, ?, 'user', ?, 'create')`,
-  ).run(userId, recipeId ?? null, prompt);
+): Promise<void> {
+  await postgresDb
+    .insertInto("messages")
+    .values({
+      user_id: userId,
+      recipe_id: recipeId ?? null,
+      role: "user",
+      content: prompt,
+      status: "create",
+    })
+    .execute();
 }
 
-export function saveAssistantErrorMessage(
-  userId: UserId,
-  recipeId: RecipeId | null | undefined,
+export async function saveAssistantErrorMessage(
+  userId: string,
+  recipeId: string | null | undefined,
   error: unknown,
-): void {
-  db.prepare(
-    `INSERT INTO messages (user_id, recipe_id, role, content, status)
-     VALUES (?, ?, 'assistant', ?, 'error')`,
-  ).run(userId, recipeId ?? null, JSON.stringify(error));
+): Promise<void> {
+  await postgresDb
+    .insertInto("messages")
+    .values({
+      user_id: userId,
+      recipe_id: recipeId ?? null,
+      role: "assistant",
+      content: JSON.stringify(error),
+      status: "error",
+    })
+    .execute();
 }
 
-export function saveAssistantRecipeMessage(
-  userId: UserId,
-  recipeId: RecipeId,
-  recipeVersionId: VersionId,
+export async function saveAssistantRecipeMessage(
+  userId: string,
+  recipeId: string,
+  recipeVersionId: string,
   recipe: ParsedAiRecipe,
-): void {
-  db.prepare(
-    `INSERT INTO messages (user_id, recipe_id, recipe_version_id, role, content, status)
-     VALUES (?, ?, ?, 'assistant', ?, 'recipe')`,
-  ).run(userId, recipeId, recipeVersionId, JSON.stringify(recipe));
+): Promise<void> {
+  await postgresDb
+    .insertInto("messages")
+    .values({
+      user_id: userId,
+      recipe_id: recipeId,
+      recipe_version_id: recipeVersionId,
+      role: "assistant",
+      content: JSON.stringify(recipe),
+      status: "recipe",
+    })
+    .execute();
 }
 
-export function getRecipeErrors(
-  recipeId: RecipeId,
-  userId: UserId,
-): RecipeError[] | null {
-  const recipe = db
-    .prepare("SELECT 1 FROM recipes WHERE id = ? AND user_id = ?")
-    .get(recipeId, userId) as { 1: number } | undefined;
+export async function getRecipeErrors(
+  recipeId: string,
+  userId: string,
+): Promise<RecipeError[] | null> {
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select("id")
+    .where("id", "=", recipeId)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe) return null;
 
-  if (!recipe) {
-    return null;
-  }
-
-  const rows = db
-    .prepare(
-      `SELECT id, status, content, created_at
-       FROM messages
-       WHERE recipe_id = ? AND status = 'error'
-       ORDER BY created_at DESC`,
-    )
-    .all(recipeId) as ErrorMessageRow[];
+  const rows = await postgresDb
+    .selectFrom("messages")
+    .select(["id", "status", "content", "created_at"])
+    .where("recipe_id", "=", recipeId)
+    .where("status", "=", "error")
+    .orderBy("created_at", "desc")
+    .execute();
 
   return rows.map((row) => {
-    const parsed = safeParse<StoredAiError>(row.content || "{}", {});
-
+    const parsed = safeParse<StoredAiError>(row.content, {});
     return {
       id: row.id,
       status: row.status,
-      created_at: row.created_at,
+      created_at: row.created_at.toISOString(),
       ai_model: parsed.ai_model,
       source_input: parsed.source_input,
       error: parsed.error,
@@ -101,53 +118,46 @@ export function getRecipeErrors(
   });
 }
 
-export function deleteError(id: string | number, userId: UserId): boolean {
-  const message = db
-    .prepare(
-      `
-    SELECT m.id FROM messages m
-    JOIN recipes r ON m.recipe_id = r.id
-    WHERE m.id = ? AND r.user_id = ?
-  `,
-    )
-    .get(id, userId) as ExistingNumericIdRow | undefined;
-
-  if (!message) {
-    return false;
-  }
-
-  const result = db.prepare(`DELETE FROM messages WHERE id = ?`).run(id);
-  return result.changes > 0;
+export async function deleteError(
+  id: string | number,
+  userId: string,
+): Promise<boolean> {
+  const messageId = Number(id);
+  if (!Number.isInteger(messageId)) return false;
+  const result = await postgresDb
+    .deleteFrom("messages as m")
+    .using("recipes as r")
+    .whereRef("m.recipe_id", "=", "r.id")
+    .where("m.id", "=", messageId)
+    .where("r.user_id", "=", userId)
+    .returning("m.id")
+    .executeTakeFirst();
+  return result !== undefined;
 }
 
-export function getAskMessages(
-  recipeId: RecipeId,
-  userId: UserId,
-): AskMessage[] | null {
-  const recipe = db
-    .prepare("SELECT 1 FROM recipes WHERE id = ? AND user_id = ?")
-    .get(recipeId, userId) as { 1: number } | undefined;
+export async function getAskMessages(
+  recipeId: string,
+  userId: string,
+): Promise<AskMessage[] | null> {
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select("id")
+    .where("id", "=", recipeId)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe) return null;
 
-  if (!recipe) {
-    return null;
-  }
-
-  const rows = db
-    .prepare(
-      `SELECT *
-       FROM messages
-       WHERE recipe_id = ? AND status = 'ask'
-       ORDER BY created_at ASC`,
-    )
-    .all(recipeId) as AskMessageRow[];
+  const rows = await postgresDb
+    .selectFrom("messages")
+    .select(["id", "content", "created_at", "user_id", "status", "role"])
+    .where("recipe_id", "=", recipeId)
+    .where("status", "=", "ask")
+    .orderBy("created_at", "asc")
+    .execute();
 
   return rows.map((row) => ({
-    id: row.id,
-    content: row.content,
-    created_at: row.created_at,
-    user_id: row.user_id,
-    status: row.status,
-    role: row.role,
+    ...row,
+    created_at: row.created_at.toISOString(),
   }));
 }
 

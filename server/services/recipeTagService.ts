@@ -1,227 +1,190 @@
-import db from "../db.js";
-import type {
-  ExistingTextIdRow,
-  RecipeId,
-  RecipeTagRow,
-  UserId,
-} from "./db.types.js";
-import type { RecipeTag } from "./recipe.types.js";
+import { sql } from "kysely";
+import { postgresDb } from "../database/db.js";
 import type { AddTagBody, TagInput } from "../validation/recipeSchemas.js";
+import type { RecipeTag } from "./recipe.types.js";
 
+type Result = { success: true } | { success: false; error: string };
 type NewTagInput = AddTagBody["newTag"];
-type UpdateRecipeResult = { success: true } | { success: false; error: string };
-type TagMutationResult =
-  | { success: true; tag?: RecipeTag }
-  | { success: false; error: string };
-type UpdateRecipeTagsInput = {
-  tags?: TagInput[];
-};
+type UpdateRecipeTagsInput = { tags?: TagInput[] };
+type TagRow = { id: number; name: string; color: string };
 
-function normalizeTagName(name: string): string {
-  return name.trim();
-}
+const normalizeTagName = (name: string) => name.trim();
+const toRecipeTag = (tag: TagRow): RecipeTag => tag;
 
-function findTagByNormalizedName(
-  userId: UserId,
+async function findTagByNormalizedName(
+  userId: string,
   name: string,
   excludeTagId?: number,
-): RecipeTagRow | undefined {
+): Promise<TagRow | undefined> {
   const normalizedName = normalizeTagName(name);
+  if (!normalizedName) return undefined;
 
-  if (!normalizedName) {
-    return undefined;
-  }
+  let query = postgresDb
+    .selectFrom("tags")
+    .select(["id", "name", "color"])
+    .where("user_id", "=", userId)
+    .where(sql<boolean>`lower(btrim(name)) = lower(btrim(${normalizedName}))`)
+    .orderBy("id");
 
   if (excludeTagId !== undefined) {
-    return db
-      .prepare(
-        `SELECT id, name, color
-           FROM tags
-          WHERE user_id = ?
-            AND id != ?
-            AND trim(name) = ? COLLATE NOCASE
-          ORDER BY id
-          LIMIT 1`,
-      )
-      .get(userId, excludeTagId, normalizedName) as RecipeTagRow | undefined;
+    query = query.where("id", "!=", excludeTagId);
   }
 
-  return db
-    .prepare(
-      `SELECT id, name, color
-         FROM tags
-        WHERE user_id = ?
-          AND trim(name) = ? COLLATE NOCASE
-        ORDER BY id
-        LIMIT 1`,
-    )
-    .get(userId, normalizedName) as RecipeTagRow | undefined;
+  return query.executeTakeFirst();
 }
 
-export function createRecipeTag(
-  recipeId: RecipeId,
-  userId: UserId,
+export async function createRecipeTag(
+  recipeId: string,
+  userId: string,
   newTag: NewTagInput,
-): TagMutationResult {
+): Promise<Result & { tag?: RecipeTag }> {
   const normalizedName = normalizeTagName(newTag.name);
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select("id")
+    .where("id", "=", recipeId)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe) return { success: false, error: "Recipe not found" };
 
-  const recipe = db
-    .prepare(`SELECT id FROM recipes WHERE id = ? AND user_id = ?`)
-    .get(recipeId, userId) as ExistingTextIdRow | undefined;
-
-  if (!recipe) {
-    return { success: false, error: "Recipe not found" };
+  let tag = await findTagByNormalizedName(userId, normalizedName);
+  if (!tag) {
+    tag = await postgresDb
+      .insertInto("tags")
+      .values({ user_id: userId, name: normalizedName, color: newTag.color })
+      .returning(["id", "name", "color"])
+      .executeTakeFirstOrThrow();
   }
 
-  let tagRow = findTagByNormalizedName(userId, normalizedName);
-
-  if (!tagRow) {
-    const result = db
-      .prepare(`INSERT INTO tags (user_id, name, color) VALUES (?, ?, ?)`)
-      .run(userId, normalizedName, newTag.color);
-
-    tagRow = {
-      id: Number(result.lastInsertRowid),
-      name: normalizedName,
-      color: newTag.color,
-    };
-  }
-
-  const existingTag = db
-    .prepare(`SELECT 1 FROM recipe_tags WHERE recipe_id = ? AND tag_id = ?`)
-    .get(recipeId, tagRow.id) as { 1: number } | undefined;
-
-  if (existingTag) {
+  const association = await postgresDb
+    .insertInto("recipe_tags")
+    .values({ recipe_id: recipeId, tag_id: tag.id })
+    .onConflict((oc) => oc.columns(["recipe_id", "tag_id"]).doNothing())
+    .returning("tag_id")
+    .executeTakeFirst();
+  if (!association) {
     return { success: false, error: "Tag already associated with this recipe" };
   }
-
-  db.prepare(`INSERT INTO recipe_tags (recipe_id, tag_id) VALUES (?, ?)`).run(
-    recipeId,
-    tagRow.id,
-  );
-
-  return { success: true, tag: toRecipeTag(tagRow) };
+  return { success: true, tag: toRecipeTag(tag) };
 }
 
-export function deleteRecipeTag(
-  recipeId: RecipeId,
+export async function deleteRecipeTag(
+  recipeId: string,
   tagId: number,
-  userId: UserId,
-): UpdateRecipeResult {
-  const recipe = db
-    .prepare("SELECT 1 FROM recipes WHERE id = ? AND user_id = ?")
-    .get(recipeId, userId) as { 1: number } | undefined;
-
-  if (!recipe) {
+  userId: string,
+): Promise<Result> {
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select("id")
+    .where("id", "=", recipeId)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe)
     return { success: false, error: "Recipe not found or access denied" };
-  }
-
-  db.prepare(`DELETE FROM recipe_tags WHERE recipe_id = ? AND tag_id = ?`).run(
-    recipeId,
-    tagId,
-  );
-
+  await postgresDb
+    .deleteFrom("recipe_tags")
+    .where("recipe_id", "=", recipeId)
+    .where("tag_id", "=", tagId)
+    .execute();
   return { success: true };
 }
 
-export function updateRecipeTags(
-  recipeId: RecipeId,
-  userId: UserId,
+//TO DO: This function is more convoluted then necessary, will update later.
+export async function updateRecipeTags(
+  recipeId: string,
+  userId: string,
   updatedRecipe: UpdateRecipeTagsInput,
-): UpdateRecipeResult {
-  const resolvedTagIds: number[] = [];
-  const seenNames = new Set<string>();
+): Promise<Result> {
+  const recipe = await postgresDb
+    .selectFrom("recipes")
+    .select("id")
+    .where("id", "=", recipeId)
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+  if (!recipe)
+    return { success: false, error: "Recipe not found or access denied" };
 
-  // Resolve each incoming tag to a single existing user-owned tag by normalized
-  // name so recipe tag edits reuse shared tags instead of creating duplicates.
-  for (const tag of updatedRecipe.tags ?? []) {
-    const normalizedName = normalizeTagName(tag.name);
-    const normalizedKey = normalizedName.toLowerCase();
+  await postgresDb.transaction().execute(async (trx) => {
+    const tagIds: number[] = [];
+    const seen = new Set<string>();
+    for (const tag of updatedRecipe.tags ?? []) {
+      const name = normalizeTagName(tag.name);
+      const key = name.toLowerCase();
+      if (!name || seen.has(key)) continue;
+      seen.add(key);
 
-    if (!normalizedName || seenNames.has(normalizedKey)) {
-      continue;
-    }
+      // Check whether the submitted ID belongs to one of this user's tags.
+      const byId = await trx
+        .selectFrom("tags")
+        .select("id")
+        .where("id", "=", tag.id)
+        .where("user_id", "=", userId)
+        .executeTakeFirst();
+      // Look for another tag with the same case-insensitive normalized name.
+      const existing = await trx
+        .selectFrom("tags")
+        .select("id")
+        .where("user_id", "=", userId)
+        .where(sql<boolean>`lower(btrim(name)) = lower(btrim(${name}))`)
+        .where((eb) => (byId ? eb("id", "!=", byId.id) : eb.val(true)))
+        .executeTakeFirst();
 
-    seenNames.add(normalizedKey);
-
-    const existingTagById = db
-      .prepare(`SELECT id FROM tags WHERE id = ? AND user_id = ?`)
-      .get(tag.id, userId) as { id: number } | undefined;
-
-    if (existingTagById) {
-      const conflictingTag = findTagByNormalizedName(
-        userId,
-        normalizedName,
-        existingTagById.id,
-      );
-
-      //Tag name already exists only update the color
-      if (conflictingTag) {
-        db.prepare(
-          `UPDATE tags
-             SET color = ?, updated_at = CURRENT_TIMESTAMP
-             WHERE id = ? AND user_id = ?`,
-        ).run(tag.color, conflictingTag.id, userId);
-        resolvedTagIds.push(conflictingTag.id);
-        continue;
+      // Tags are shared per user, so changing this color updates every recipe
+      if (byId && !existing) {
+        // The submitted tag still belongs to this user and its new name is free.
+        // Rename it and update its color.
+        await trx
+          .updateTable("tags")
+          .set({ name, color: tag.color, updated_at: new Date() })
+          .where("id", "=", byId.id)
+          .execute();
+        tagIds.push(byId.id);
+      } else if (existing) {
+        // Another tag already has this normalized name. Reuse that tag and only
+        // update its color instead of creating a duplicate association.
+        await trx
+          .updateTable("tags")
+          .set({ color: tag.color, updated_at: new Date() })
+          .where("id", "=", existing.id)
+          .execute();
+        tagIds.push(existing.id);
+      } else {
+        // The submitted ID is unknown and no matching tag exists, so create a
+        // new user owned tag.
+        const inserted = await trx
+          .insertInto("tags")
+          .values({ user_id: userId, name, color: tag.color })
+          .returning("id")
+          .executeTakeFirstOrThrow();
+        tagIds.push(inserted.id);
       }
-
-      //Tag name does not exists update name and color
-      db.prepare(
-        `UPDATE tags
-           SET name = ?, color = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ? AND user_id = ?`,
-      ).run(normalizedName, tag.color, existingTagById.id, userId);
-
-      resolvedTagIds.push(existingTagById.id);
-      continue;
     }
-
-    const existingTagByName = findTagByNormalizedName(userId, normalizedName);
-
-    if (existingTagByName) {
-      db.prepare(
-        `UPDATE tags
-           SET color = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ? AND user_id = ?`,
-      ).run(tag.color, existingTagByName.id, userId);
-      resolvedTagIds.push(existingTagByName.id);
-      continue;
+    if (tagIds.length) {
+      // Keep associations only for the resolved tags from this request.
+      await trx
+        .deleteFrom("recipe_tags")
+        .where("recipe_id", "=", recipeId)
+        .where("tag_id", "not in", tagIds)
+        .execute();
+    } else {
+      // No valid tags were submitted, so remove every tag from this recipe.
+      await trx
+        .deleteFrom("recipe_tags")
+        .where("recipe_id", "=", recipeId)
+        .execute();
     }
-
-    const insertResult = db
-      .prepare(`INSERT INTO tags (user_id, name, color) VALUES (?, ?, ?)`)
-      .run(userId, normalizedName, tag.color);
-
-    resolvedTagIds.push(Number(insertResult.lastInsertRowid));
-  }
-
-  if (resolvedTagIds.length > 0) {
-    db.prepare(
-      `DELETE FROM recipe_tags
-         WHERE recipe_id = ? AND tag_id NOT IN (${resolvedTagIds.map(() => "?").join(", ")})`,
-    ).run(recipeId, ...resolvedTagIds);
-  } else {
-    db.prepare(`DELETE FROM recipe_tags WHERE recipe_id = ?`).run(recipeId);
-  }
-
-  for (const tagId of resolvedTagIds) {
-    db.prepare(
-      `INSERT OR IGNORE INTO recipe_tags (recipe_id, tag_id) VALUES (?, ?)`,
-    ).run(recipeId, tagId);
-  }
-
-  db.prepare(
-    `DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM recipe_tags)`,
-  ).run();
-
+    for (const tagId of tagIds) {
+      // Associate each resolved tag. The conflict clause makes retries safe.
+      await trx
+        .insertInto("recipe_tags")
+        .values({ recipe_id: recipeId, tag_id: tagId })
+        .onConflict((oc) => oc.columns(["recipe_id", "tag_id"]).doNothing())
+        .execute();
+    }
+    // Remove only this user's tags that are no longer attached to any recipe.
+    await sql`DELETE FROM tags WHERE user_id = ${userId} AND NOT EXISTS (SELECT 1 FROM recipe_tags WHERE recipe_tags.tag_id = tags.id)`.execute(
+      trx,
+    );
+  });
   return { success: true };
-}
-
-function toRecipeTag(tag: RecipeTagRow): RecipeTag {
-  return {
-    id: tag.id,
-    name: tag.name,
-    color: tag.color,
-  };
 }

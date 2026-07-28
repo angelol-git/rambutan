@@ -9,6 +9,7 @@ import kitchenRoutes from "./routes/kitchen.js";
 import tagRoutes from "./routes/tags.js";
 import cookieParser from "cookie-parser";
 import type { ErrorRequestHandler } from "express";
+import { destroyPostgresDb } from "./database/db.js";
 import logger from "./logger.js";
 type ShutdownSignal = "SIGTERM" | "SIGINT";
 
@@ -57,8 +58,14 @@ const server = app.listen(PORT, () => {
 
 const shutdown = (signal: ShutdownSignal) => {
   logger.warn({ signal }, "Starting graceful shutdown");
-  server.close(() => {
-    process.exit(0);
+  server.close(async () => {
+    try {
+      await destroyPostgresDb();
+      process.exit(0);
+    } catch (error) {
+      logger.error({ err: error }, "Failed to close PostgreSQL connections");
+      process.exit(1);
+    }
   });
 
   setTimeout(() => {

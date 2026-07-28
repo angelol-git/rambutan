@@ -55,7 +55,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
   const pageSize =
     Number.isFinite(parsedPageSize) && parsedPageSize > 0 ? parsedPageSize : 8;
   try {
-    const recipes = getRecipesByUserId(user.id, { page, pageSize });
+    const recipes = await getRecipesByUserId(user.id, { page, pageSize });
     return res.json(recipes);
   } catch (error) {
     logger.error(
@@ -76,7 +76,7 @@ router.get(
     }
 
     try {
-      const recipe = getRecipeById(req.params.recipeId, user.id);
+      const recipe = await getRecipeById(req.params.recipeId, user.id);
       if (!recipe) {
         return res.status(404).json({ error: "Recipe not found" });
       }
@@ -110,7 +110,7 @@ router.patch(
     }
 
     try {
-      const result = updateRecipeMetadata(
+      const result = await updateRecipeMetadata(
         req.params.recipeId,
         user.id,
         req.body.updatedRecipe,
@@ -148,7 +148,7 @@ router.delete(
     }
 
     try {
-      const deleted = deleteRecipe(req.params.recipeId, user.id);
+      const deleted = await deleteRecipe(req.params.recipeId, user.id);
       if (!deleted) {
         return res.status(404).json({ message: "Recipe not found" });
       }
@@ -179,7 +179,7 @@ router.get(
     }
 
     try {
-      const errors = getRecipeErrors(req.params.recipeId, user.id);
+      const errors = await getRecipeErrors(req.params.recipeId, user.id);
       if (errors === null) {
         return res.status(404).json({ error: "Recipe not found" });
       }
@@ -209,7 +209,7 @@ router.delete(
     }
 
     try {
-      const deleted = deleteError(req.params.errorId, user.id);
+      const deleted = await deleteError(req.params.errorId, user.id);
       if (!deleted) {
         return res.status(404).json({ message: "Error message not found" });
       }
@@ -239,7 +239,7 @@ router.get(
     }
 
     try {
-      const askMessages = getAskMessages(req.params.recipeId, user.id);
+      const askMessages = await getAskMessages(req.params.recipeId, user.id);
       if (askMessages === null) {
         return res.status(404).json({ error: "Recipe not found" });
       }

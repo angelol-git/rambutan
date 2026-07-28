@@ -38,7 +38,7 @@ router.delete(
       return;
     }
 
-    const result = deleteTags(req.body.tagIds, user.id);
+    const result = await deleteTags(req.body.tagIds, user.id);
     if (!result.success) {
       return res.status(500).json({ error: result.error });
     }
@@ -62,7 +62,7 @@ router.patch(
         return res.status(400).json({ error: "Invalid tag id" });
       }
 
-      const result = updateTag(tagId, user.id, req.body.tag ?? {});
+      const result = await updateTag(tagId, user.id, req.body.tag ?? {});
       if (!result.success) {
         return res.status(400).json({ error: result.error });
       }
@@ -87,7 +87,7 @@ router.patch(
       return;
     }
 
-    const result = updateTags(req.body.tags, user.id);
+    const result = await updateTags(req.body.tags, user.id);
     if (!result.success) {
       return res.status(500).json({ error: result.error });
     }

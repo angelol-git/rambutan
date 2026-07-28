@@ -1,8 +1,8 @@
 import express, { type Request, type Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import { v4 as uuidv4 } from "uuid";
+import { postgresDb } from "../database/db.js";
 import authMiddleware from "../middleware.js";
-import db from "../db.js";
 import logger from "../logger.js";
 
 const router = express.Router();
@@ -12,10 +12,6 @@ type GoogleAuthBody = {
   credential?: string;
 };
 
-type UserRow = {
-  id: string;
-};
-
 /*
  * TO DO: Current implementation is conventional server side cookie session model
  * being done manually instead of express-session, or REDIS
@@ -23,15 +19,14 @@ type UserRow = {
  * - Sessions are currently fixed life time and not rolling. Active users always expire at day 30, it should extend
  * - Sessions are filtered out but not cleaned up automatically
  */
-function createSession(userId: string, res: Response): string {
+async function createSession(userId: string, res: Response): Promise<string> {
   const sid = uuidv4();
-  const expiresAt = new Date(
-    Date.now() + 1000 * 60 * 60 * 24 * 30,
-  ).toISOString();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
 
-  db.prepare(
-    `INSERT INTO sessions (sid, user_id, expires_at) VALUES (?, ?, ?)`,
-  ).run(sid, userId, expiresAt);
+  await postgresDb
+    .insertInto("sessions")
+    .values({ sid, user_id: userId, expires_at: expiresAt })
+    .execute();
 
   res.cookie("sid", sid, {
     httpOnly: true,
@@ -45,7 +40,10 @@ function createSession(userId: string, res: Response): string {
 
 router.post(
   "/google",
-  async (req: Request<{}, {}, GoogleAuthBody>, res: Response) => {
+  async (
+    req: Request<Record<string, never>, unknown, GoogleAuthBody>,
+    res: Response,
+  ) => {
     try {
       const { credential } = req.body;
 
@@ -63,18 +61,25 @@ router.post(
         return res.status(401).json({ error: "Invalid Google token" });
       }
 
-      const existingUser = db
-        .prepare(`SELECT id FROM users WHERE external_id = ?`)
-        .get(payload.sub) as UserRow | undefined;
+      const existingUser = await postgresDb
+        .selectFrom("users")
+        .select("id")
+        .where("external_id", "=", payload.sub)
+        .executeTakeFirst();
 
       const userId = uuidv4();
       if (!existingUser) {
-        db.prepare(
-          `INSERT INTO users (id, external_id, email) VALUES (?, ?, ?)`,
-        ).run(userId, payload.sub, payload.email);
-        createSession(userId, res);
+        await postgresDb
+          .insertInto("users")
+          .values({
+            id: userId,
+            external_id: payload.sub,
+            email: payload.email,
+          })
+          .execute();
+        await createSession(userId, res);
       } else {
-        createSession(existingUser.id, res);
+        await createSession(existingUser.id, res);
       }
 
       return res.json({ message: "Logged in", user: payload });
@@ -91,12 +96,12 @@ router.post(
   },
 );
 
-router.post("/logout", (req: Request, res: Response) => {
+router.post("/logout", async (req: Request, res: Response) => {
   const sid = req.cookies.sid as string | undefined;
 
   if (sid) {
     try {
-      db.prepare(`DELETE FROM sessions WHERE sid = ?`).run(sid);
+      await postgresDb.deleteFrom("sessions").where("sid", "=", sid).execute();
       res.clearCookie("sid");
     } catch (error) {
       logger.error(

@@ -47,7 +47,7 @@ router.post(
 
     try {
       if (user) {
-        saveUserPrompt(user.id, recipeId ?? null, recipePrompt);
+        await saveUserPrompt(user.id, recipeId ?? null, recipePrompt);
       }
 
       const urlRegex = /(https?:\/\/[^\s]+)/i;
@@ -79,7 +79,7 @@ router.post(
       const parsedRecipe = validateAiResponse(aiResponse, recipePrompt);
 
       if (user) {
-        const savedRecipe = saveRecipeToDb(parsedRecipe, {
+        const savedRecipe = await saveRecipeToDb(parsedRecipe, {
           userId: user.id,
           recipeId: recipeId ?? null,
         });
@@ -145,7 +145,7 @@ router.post(
         );
 
         if (user) {
-          saveAssistantErrorMessage(user.id, recipeId ?? null, {
+          await saveAssistantErrorMessage(user.id, recipeId ?? null, {
             ...error.meta,
             ai_model: getModelName(),
           });

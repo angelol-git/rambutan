@@ -33,7 +33,7 @@ router.patch(
     }
 
     try {
-      const result = updateRecipeVersion(
+      const result = await updateRecipeVersion(
         req.params.recipeId,
         req.params.versionId,
         user.id,
@@ -76,7 +76,7 @@ router.delete(
     }
 
     try {
-      const deleted = deleteRecipeVersion(req.params.versionId, user.id);
+      const deleted = await deleteRecipeVersion(req.params.versionId, user.id);
       if (!deleted) {
         return res.status(404).json({ message: "Recipe version not found" });
       }

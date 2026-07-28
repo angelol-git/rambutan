@@ -1,94 +1,63 @@
-import db from "../db.js";
-import type { UserId } from "./db.types.js";
+import { postgresDb } from "../database/db.js";
 import type { TagInput } from "../validation/recipeSchemas.js";
 
 type UpdateTagInput = Partial<Pick<TagInput, "name" | "color">>;
-type UpdateRecipeResult = { success: true } | { success: false; error: string };
-type BulkUpdateTagInput = Array<{
-  id: number;
-  name?: string;
-  color?: string;
-}>;
-type DeleteTagsResult =
-  | { success: true; deletedTagIds: number[] }
-  | { success: false; error: string };
-type UpdateTagsResult =
-  | { success: true; updated: number }
-  | { success: false; error: string };
+type Result = { success: true } | { success: false; error: string };
+type BulkUpdateTagInput = Array<{ id: number; name?: string; color?: string }>;
 
-export function updateTag(
+export async function updateTag(
   tagId: number,
-  userId: UserId,
+  userId: string,
   updates: UpdateTagInput,
-): UpdateRecipeResult {
-  const fields: string[] = [];
-  const values: string[] = [];
-
-  if (updates.color !== undefined) {
-    fields.push("color = ?");
-    values.push(updates.color);
-  }
-
-  if (updates.name !== undefined) {
-    fields.push("name = ?");
-    values.push(updates.name);
-  }
-
-  if (fields.length === 0) {
+): Promise<Result> {
+  if (updates.name === undefined && updates.color === undefined)
     return { success: false, error: "No valid fields to update" };
-  }
-
-  fields.push("updated_at = CURRENT_TIMESTAMP");
-
-  const statement = `UPDATE tags SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`;
-  db.prepare(statement).run(...values, tagId, userId);
-
+  await postgresDb
+    .updateTable("tags")
+    .set({ ...updates, updated_at: new Date() })
+    .where("id", "=", tagId)
+    .where("user_id", "=", userId)
+    .execute();
   return { success: true };
 }
 
-export function deleteTags(tagIds: number[], userId: UserId): DeleteTagsResult {
+export async function deleteTags(
+  tagIds: number[],
+  userId: string,
+): Promise<Result & { deletedTagIds?: number[] }> {
   try {
-    const deleteTransaction = db.transaction(() => {
-      db.prepare(
-        `DELETE FROM recipe_tags WHERE tag_id IN (${tagIds.map(() => "?").join(", ")})`,
-      ).run(...tagIds);
-
-      db.prepare(
-        `DELETE FROM tags WHERE id IN (${tagIds.map(() => "?").join(", ")}) AND user_id = ?`,
-      ).run(...tagIds, userId);
+    await postgresDb.transaction().execute(async (trx) => {
+      await trx
+        .deleteFrom("recipe_tags")
+        .where("tag_id", "in", tagIds)
+        .execute();
+      await trx
+        .deleteFrom("tags")
+        .where("id", "in", tagIds)
+        .where("user_id", "=", userId)
+        .execute();
     });
-
-    deleteTransaction();
     return { success: true, deletedTagIds: tagIds };
   } catch {
     return { success: false, error: "Failed to delete tags" };
   }
 }
 
-export function updateTags(
+export async function updateTags(
   tags: BulkUpdateTagInput,
-  userId: UserId,
-): UpdateTagsResult {
+  userId: string,
+): Promise<Result & { updated?: number }> {
   try {
-    const updateStatement = db.prepare(
-      `UPDATE tags
-       SET name = COALESCE(?, name),
-           color = COALESCE(?, color)
-       WHERE id = ? AND user_id = ?`,
-    );
-
-    const transaction = db.transaction((inputTags: BulkUpdateTagInput) => {
-      inputTags.forEach((tag) => {
-        updateStatement.run(
-          tag.name ?? null,
-          tag.color ?? null,
-          tag.id,
-          userId,
-        );
-      });
+    await postgresDb.transaction().execute(async (trx) => {
+      for (const tag of tags) {
+        await trx
+          .updateTable("tags")
+          .set({ name: tag.name, color: tag.color, updated_at: new Date() })
+          .where("id", "=", tag.id)
+          .where("user_id", "=", userId)
+          .execute();
+      }
     });
-
-    transaction(tags);
     return { success: true, updated: tags.length };
   } catch {
     return { success: false, error: "Failed to update tag" };

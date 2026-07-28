@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import db from "./db.js";
+import { postgresDb } from "./database/db.js";
 import logger from "./logger.js";
 
 type SessionUserRow = {
@@ -7,14 +7,14 @@ type SessionUserRow = {
   email: string;
 };
 
-export const authMiddleware: RequestHandler = (req, res, next) => {
+export const authMiddleware: RequestHandler = async (req, res, next) => {
   const sid = req.cookies.sid;
   if (!sid) {
     return res.status(401).json({ error: "Not authenticated" });
   }
 
   try {
-    const user = getSessionUser(sid);
+    const user = await getSessionUser(sid);
 
     if (!user) {
       logger.warn({ path: req.originalUrl }, "Session expired");
@@ -35,7 +35,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
   }
 };
 
-export const optionalAuth: RequestHandler = (req, res, next) => {
+export const optionalAuth: RequestHandler = async (req, res, next) => {
   const sid = req.cookies.sid as string | undefined;
 
   if (!sid) {
@@ -44,7 +44,7 @@ export const optionalAuth: RequestHandler = (req, res, next) => {
   }
 
   try {
-    req.user = getSessionUser(sid);
+    req.user = await getSessionUser(sid);
     next();
   } catch (error) {
     logger.error(
@@ -59,15 +59,16 @@ export const optionalAuth: RequestHandler = (req, res, next) => {
   }
 };
 
-const getSessionUser = (sid: string): Express.UserPayload | null => {
-  const user = db
-    .prepare(
-      `SELECT s.user_id, u.email
-       FROM sessions s
-       JOIN users u ON u.id = s.user_id
-       WHERE s.sid = ? AND s.expires_at > ?`,
-    )
-    .get(sid, new Date().toISOString()) as SessionUserRow | undefined;
+const getSessionUser = async (
+  sid: string,
+): Promise<Express.UserPayload | null> => {
+  const user = (await postgresDb
+    .selectFrom("sessions as s")
+    .innerJoin("users as u", "u.id", "s.user_id")
+    .select(["s.user_id", "u.email"])
+    .where("s.sid", "=", sid)
+    .where("s.expires_at", ">", new Date())
+    .executeTakeFirst()) as SessionUserRow | undefined;
 
   if (!user) {
     return null;

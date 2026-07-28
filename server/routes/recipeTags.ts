@@ -40,7 +40,7 @@ router.post(
     }
 
     try {
-      const result = createRecipeTag(
+      const result = await createRecipeTag(
         req.params.recipeId,
         user.id,
         req.body.newTag,
@@ -78,7 +78,7 @@ router.patch(
     }
 
     try {
-      const result = updateRecipeTags(
+      const result = await updateRecipeTags(
         req.params.recipeId,
         user.id,
         req.body.updatedRecipe,
@@ -120,7 +120,7 @@ router.delete(
         return res.status(400).json({ error: "Invalid tag id" });
       }
 
-      const result = deleteRecipeTag(req.params.recipeId, tagId, user.id);
+      const result = await deleteRecipeTag(req.params.recipeId, tagId, user.id);
       if (!result.success) {
         return res
           .status(404)

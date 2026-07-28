@@ -1,5 +1,3 @@
-import type { RecipeId } from "./db.types.js";
-
 export type RecipeSourceType = "url" | "instruction" | "raw_text";
 
 export type RecipeSource = {
@@ -55,7 +53,7 @@ export type RecipeTag = {
 };
 
 export type Recipe = {
-  id: RecipeId;
+  id: string;
   title: string;
   created_at: string;
   tags: RecipeTag[];
