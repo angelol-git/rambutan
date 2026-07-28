@@ -32,14 +32,20 @@ Recipe manager app for importing, organizing, editing, and generating recipes.
 │   ├── src/hooks/           # Data-fetching and local state hooks
 │   └── src/api/             # Frontend API clients
 ├── server/                  # Express API and PostgreSQL app
+│   ├── database/            # Kysely client, schema types, and migrations
 │   ├── routes/              # auth, recipes, kitchen, tags
 │   ├── services/            # AI, recipe, message, tag, and URL services
-│   ├── migrations/          # Database schema migrations
-│   └── scripts/             # Migration runner and benchmarks
+│   └── server.ts            # API entry point
 └── package.json             # Workspace-level scripts
 ```
 
 ## Setup
+
+Requirements:
+
+- Node.js 22 or later
+- pnpm
+- A running PostgreSQL database
 
 1. Clone the repository:
 
@@ -70,12 +76,13 @@ GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_API_KEY=your-google-api-key
 SESSION_SECRET=replace-with-a-long-random-secret
-DATABASE_URL=./rambutan.db
+DATABASE_URL=postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/rambutan
 ```
 
 Notes:
 
-- `DATABASE_URL` is optional; the server defaults to `server/rambutan.db`.
+- `DATABASE_URL` is required and must be a PostgreSQL connection string.
+- Create the target database before running migrations.
 - Google OAuth credentials come from [Google Cloud Console](https://console.cloud.google.com/).
 - The AI key comes from [Google AI Studio](https://aistudio.google.com/app/apikey).
 - The app is now managed as a `pnpm` workspace with separate `client` and `server` packages.
@@ -110,6 +117,15 @@ Health check:
 http://localhost:8080/health
 ```
 
+Database readiness check:
+
+```text
+http://localhost:8080/ready
+```
+
+`/health` verifies that the server process is running. `/ready` also verifies
+PostgreSQL connectivity and that the baseline schema is available.
+
 ## Workspace Scripts
 
 Run these from the repository root:
@@ -143,3 +159,4 @@ pnpm format:check
 - Husky and `lint-staged` are configured at the workspace root
 - Frontend tests are present; the server test script is still a placeholder. Both are in process of a major rewrite.
 - Production server output is built into `server/dist/`
+- Run `pnpm migrate` against the production PostgreSQL database before starting a newly deployed server version.
