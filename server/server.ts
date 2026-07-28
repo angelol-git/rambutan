@@ -9,7 +9,7 @@ import kitchenRoutes from "./routes/kitchen.js";
 import tagRoutes from "./routes/tags.js";
 import cookieParser from "cookie-parser";
 import type { ErrorRequestHandler } from "express";
-import { destroyPostgresDb } from "./database/db.js";
+import { checkPostgresReadiness, destroyPostgresDb } from "./database/db.js";
 import logger from "./logger.js";
 type ShutdownSignal = "SIGTERM" | "SIGINT";
 
@@ -30,8 +30,26 @@ app.use("/api/recipes", recipeTagRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/kitchen", kitchenRoutes);
 
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/ready", async (req, res) => {
+  try {
+    await checkPostgresReadiness();
+    return res
+      .status(200)
+      .json({ status: "ready", timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error(
+      { err: error, path: req.originalUrl },
+      "PostgreSQL readiness check failed",
+    );
+    return res.status(503).json({
+      status: "not ready",
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 const errorHandler: ErrorRequestHandler = (err, req, res) => {
