@@ -26,18 +26,30 @@ export async function deleteTags(
   userId: string,
 ): Promise<Result & { deletedTagIds?: number[] }> {
   try {
-    await postgresDb.transaction().execute(async (trx) => {
-      await trx
-        .deleteFrom("recipe_tags")
-        .where("tag_id", "in", tagIds)
-        .execute();
-      await trx
-        .deleteFrom("tags")
-        .where("id", "in", tagIds)
-        .where("user_id", "=", userId)
-        .execute();
-    });
-    return { success: true, deletedTagIds: tagIds };
+    const deletedTagIds = await postgresDb
+      .transaction()
+      .execute(async (trx) => {
+        const ownedTags = await trx
+          .selectFrom("tags")
+          .select("id")
+          .where("id", "in", tagIds)
+          .where("user_id", "=", userId)
+          .execute();
+        const ownedTagIds = ownedTags.map((tag) => tag.id);
+
+        if (ownedTagIds.length === 0) {
+          return [];
+        }
+
+        await trx
+          .deleteFrom("recipe_tags")
+          .where("tag_id", "in", ownedTagIds)
+          .execute();
+        await trx.deleteFrom("tags").where("id", "in", ownedTagIds).execute();
+
+        return ownedTagIds;
+      });
+    return { success: true, deletedTagIds };
   } catch {
     return { success: false, error: "Failed to delete tags" };
   }
