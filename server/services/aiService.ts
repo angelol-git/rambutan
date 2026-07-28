@@ -13,7 +13,7 @@ if (!apiKey) {
 
 const genAI = new GoogleGenAI({ apiKey });
 
-const model = "gemini-3.1-flash-lite";
+const model = "gemini-3.5-flash-lite";
 
 type AiRecipe = z.infer<typeof aiRecipeSchema>;
 
@@ -64,9 +64,10 @@ export class AiValidationError extends Error {
 
 export async function generateResponse(
   prompt: string,
+  modelName = model,
 ): Promise<GenerateResponseResult> {
   return genAI.models.generateContent({
-    model,
+    model: modelName,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       responseMimeType: "application/json",
@@ -79,6 +80,7 @@ export async function generateResponse(
 export function validateAiResponse(
   response: GenerateResponseResult,
   prompt: string,
+  modelName = model,
 ): ParsedAiRecipe {
   let rawResponse = extractTextParts(response);
 
@@ -104,7 +106,7 @@ export function validateAiResponse(
       type: "invalid_json",
       rawResponse,
       source_input: prompt,
-      ai_model: model,
+      ai_model: modelName,
     });
   }
 
@@ -116,7 +118,7 @@ export function validateAiResponse(
       type: "schema_validation_failed",
       rawResponse,
       source_input: prompt,
-      ai_model: model,
+      ai_model: modelName,
       issues:
         error instanceof z.ZodError
           ? error.issues.map((issue) => ({
@@ -148,13 +150,13 @@ export function validateAiResponse(
       type: "invalid_json",
       rawResponse,
       source_input: prompt,
-      ai_model: model,
+      ai_model: modelName,
     });
   }
 
   return {
     ...validatedRecipe,
-    ai_model: model,
+    ai_model: modelName,
     source_input: prompt,
   };
 }
