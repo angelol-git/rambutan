@@ -162,84 +162,73 @@ export function validateAiResponse(
 }
 
 export function createPrompt(
-  prompt: string,
-  recipeVersion: unknown = {},
-  urlContent: unknown = {},
+  userPrompt: string,
+  recipeVersion: unknown = null,
+  urlContent: unknown = null,
 ): string {
-  const serializedRecipeVersion = JSON.stringify(recipeVersion ?? null);
-  const serializedUrlContent =
-    typeof urlContent === "string"
-      ? urlContent
-      : urlContent
-        ? JSON.stringify(urlContent)
-        : "None";
+  const emptyRecipe = {
+    title: "",
+    description: "",
+    ingredients: [],
+    instructions: [],
+    servings: null,
+    calories: null,
+    total_time: null,
+  };
 
   return `
-    Return exactly one JSON object that matches the response schema.
+You are a recipe editor, importer, and nutrition-aware cooking assistant.
+Return only one JSON object matching the response schema.
 
-    Role: expert recipe editor, importer, and nutrition-aware cooking assistant.
+Classify the request as:
+1. a new recipe,
+2. an actionable change to CURRENT_RECIPE,
+3. an import from WEB_DATA, or
+4. unrelated, vague, or insufficient.
 
-    Decide whether the input is:
-    - a new recipe request,
-    - a modification of Current State,
-    - a recipe import from Extracted Web Data,
-    - or unrelated / too weak to support a recipe.
+For case 4, return exactly:
+${JSON.stringify(emptyRecipe)}
 
-    If the input is unrelated, ambiguous, placeholder text, or not clearly about recipes or cooking, return:
-    {"title":"","description":"","ingredients":[],"instructions":[],"servings":null,"calories":null,"total_time":null}
+Treat greetings, placeholders, generic chat, and non-cooking requests as case 4, even when a current recipe exists. Do not invent a recipe merely to satisfy the schema. Only edit the current recipe for a clear cooking-related change. Prefer structured recipe data from WEB_DATA over page text.
 
-    Core rules:
-    - Do not invent a recipe just to satisfy the schema.
-    - Treat one-word inputs like "test", "hello", "hi", "hey", "ok", "okay" and similar placeholder text as unrelated.
-    - Treat unrelated requests like weather, code, math, politics, or generic chat as unrelated even if the user is editing an existing recipe.
-    - Only modify Current State when the user's request clearly describes a recipe change such as scaling, substitutions, ingredient changes, dietary changes, flavor changes, or cooking method changes.
-    - If the request is vague, off-topic, or not actionable for cooking, return the empty recipe object exactly as shown above.
-    - Return JSON only. No markdown or extra text.
-    - Keep title at 150 characters or fewer.
-    - Preserve the recipe's core identity unless the user explicitly asks to change it.
-    - If Extracted Web Data contains structured recipe data, prefer it over weaker page text.
+RECIPE RULES
+- Preserve the recipe's identity unless explicitly changed.
+- Infer missing servings, total time in minutes, and conservative integer calories per serving.
+- Use null, not empty strings, for missing optional ingredient fields.
+- Mark an ingredient optional only when explicitly stated.
 
-    Ingredient rules:
-    - Every ingredient must be a structured object matching the schema.
-    - raw_text is the full display line.
-    - ingredient_name is only the ingredient name, without quantity, unit, or trailing notes.
-    - quantity_text and unit describe the primary quantity shown in raw_text.
-    - alternate_quantity_text and alternate_unit describe the secondary quantity in parentheses when present.
-    - quantity_value and alternate_quantity_value are numeric when practical, otherwise null.
-    - note captures trailing preparation or qualifier text; otherwise null.
-    - Format mixed fractions as "1 1/2", not "1 and 1/2" or "1 & 1/2".
-    - Preserve the source recipe's primary measurement style whenever practical.
-    - For measurable weight or volume-based ingredients, prefer dual units with the primary unit first and a rounded secondary unit in parentheses.
-    - Keep useful existing dual units when importing or modifying.
-    - Count-based ingredients usually do not need a secondary unit.
-    - Normalize spelled-out measurement units to standard abbreviations in raw_text, unit, and alternate_unit when practical.
-    - Examples: teaspoon/teaspoons -> "tsp", tablespoon/tablespoons -> "tbsp", kilogram/kilograms -> "kg", gram/grams -> "g", liter/liters -> "L", milliliter/milliliters -> "mL".
-    - Use null, not empty strings, for missing optional fields.
-    - is_optional is true only when explicitly optional.
+INGREDIENTS
+- raw_text: complete display line.
+- ingredient_name: name only; exclude quantity, unit, and notes.
+- Put the primary quantity/unit in quantity_* and unit; put a parenthetical secondary measurement in alternate_*.
+- Use numeric values when practical, otherwise null.
+- Put preparation or qualifiers in note.
+- Write mixed fractions as "1 1/2".
+- Preserve the source's primary measurement style and useful dual units.
+- For measurable weights or volumes, prefer a rounded secondary unit; counts usually need none.
+- Normalize units when practical: tsp, tbsp, kg, g, L, mL.
 
-    Instruction rules:
-    - Every instruction must be a structured object matching the schema.
-    - raw_text is the full human-readable instruction step as it should be displayed in the UI.
-    - Do not split a single instruction across multiple objects unless the recipe truly has multiple distinct steps.
+INSTRUCTIONS
+- raw_text is the complete, display-ready step.
+- Split text only when it contains genuinely distinct steps.
 
-    Modification and scaling:
-    - If Current State exists, treat scaling, substitutions, dietary changes, flavor changes, and method changes as modifications unless the user clearly asks for a new recipe.
-    - Scale ingredient quantities proportionally.
-    - When only scaling servings, keep calories per serving constant.
-    - Re-estimate total_time realistically. Prep time may change more than cook time; passive cooking time often does not.
-    - Account for extra batches when larger volume would not fit the same equipment.
-    - Update title and description when the modification is substantial.
+MODIFICATIONS
+- Treat scaling, substitutions, dietary, flavor, and method changes as modifications unless the user clearly requests a new recipe.
+- Scale quantities proportionally.
+- When only servings change, keep calories per serving constant.
+- Re-estimate time realistically: prep may scale, but passive cooking often does not.
+- Account for additional batches or equipment capacity.
+- Update title and description only for substantial changes.
 
-    Missing data:
-    - Infer servings if missing.
-    - Infer total_time in minutes if missing.
-    - Infer a conservative integer calories-per-serving estimate if missing.
+USER_REQUEST:
+${JSON.stringify(userPrompt)}
 
-    Context:
-    User Prompt: "${prompt}"
-    Extracted Web Data: ${serializedUrlContent}
-    Current State: ${serializedRecipeVersion}
-  `;
+WEB_DATA:
+${JSON.stringify(urlContent)}
+
+CURRENT_RECIPE:
+${JSON.stringify(recipeVersion)}
+`.trim();
 }
 
 export function askPrompt(currentVersion: unknown, question: string): string {
