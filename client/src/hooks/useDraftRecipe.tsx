@@ -11,6 +11,12 @@ import type {
   DraftTextItem,
 } from "../types/draftRecipe";
 
+let nextTemporaryTagId = -1;
+
+function getTemporaryTagId() {
+  return nextTemporaryTagId--;
+}
+
 type ColorString = {
   hex: string;
 };
@@ -156,7 +162,7 @@ export function useDraftRecipe({
         tags: [
           ...(prev.tags || []),
           {
-            id: -Date.now(),
+            id: getTemporaryTagId(),
             name: trimmedName,
             color: tag.color || "#FFB86C",
           },
