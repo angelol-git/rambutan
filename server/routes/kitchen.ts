@@ -105,6 +105,7 @@ router.post(
               total_time: parsedRecipe.total_time,
             },
             description: parsedRecipe.description,
+            notes: "",
             instructions: parsedRecipe.instructions.map(
               (instruction, index) => ({
                 id: uuidv7(),
