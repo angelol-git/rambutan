@@ -43,9 +43,7 @@ Recipe manager app for importing, organizing, editing, and generating recipes.
 
 Requirements:
 
-- Node.js 22 or later
-- pnpm
-- A running PostgreSQL database
+- Docker and Docker Compose
 
 1. Clone the repository:
 
@@ -54,73 +52,68 @@ git clone https://github.com/angelol-git/rambutan.git
 cd rambutan
 ```
 
-2. Install workspace dependencies:
+2. Run the first-time Docker setup:
 
 ```bash
-pnpm install
+pnpm docker:setup
 ```
 
-3. Create `client/.env`:
+On its first run this creates `.env` without overwriting an existing one.
 
-```env
-VITE_API_URL=http://localhost:8080/api
-VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+3. Edit `.env` and set the database password, Google credentials, and session
+   secret, then rerun the setup command. It builds and starts the containers and
+   runs the database migrations:
+
+```bash
+pnpm docker:setup
 ```
 
-4. Create `server/.env`:
-
-```env
-PORT=8080
-CLIENT_URL=http://localhost:5173
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_API_KEY=your-google-api-key
-SESSION_SECRET=replace-with-a-long-random-secret
-DATABASE_URL=postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/rambutan
-```
-
-Notes:
-
-- `DATABASE_URL` is required and must be a PostgreSQL connection string.
-- Create the target database before running migrations.
 - Google OAuth credentials come from [Google Cloud Console](https://console.cloud.google.com/).
 - The AI key comes from [Google AI Studio](https://aistudio.google.com/app/apikey).
-- The app is now managed as a `pnpm` workspace with separate `client` and `server` packages.
 
-5. Run database migrations:
+## Run with Docker
 
-```bash
-pnpm migrate
-```
-
-## Run Locally
-
-Start the server:
+The client is available at `http://localhost:8080`. View service logs with:
 
 ```bash
-pnpm dev:server
+pnpm docker:logs
 ```
 
-Runs on `http://localhost:8080`.
+Start or rebuild the containers with `pnpm docker:up`; stop them with
+`pnpm docker:down`.
 
-Start the client in another terminal:
+## Develop with Docker
+
+For a first-time development setup, run:
 
 ```bash
-pnpm dev:client
+pnpm docker:dev
 ```
 
-Runs on `http://localhost:5173`.
+If `.env` does not exist, this creates it from `.env.example` and stops. Set
+the database password, Google credentials, and session secret in `.env`, then
+rerun the command.
 
-Health check:
+This mounts the `client` and `server` source directories into their containers
+and runs Vite and the server watcher. Open `http://localhost:5173`; edits to
+either application reload automatically. The API is available at
+`http://localhost:8080`.
 
-```text
-http://localhost:8080/health
+The server applies outstanding database migrations automatically before starting
+the development watcher.
+
+Stop the development environment with `pnpm docker:dev:down`.
+
+Check the server health from inside its container:
+
+```bash
+docker compose -f compose.dev.yaml exec server node -e "fetch('http://localhost:8080/health').then(r => console.log(r.status))"
 ```
 
-Database readiness check:
+Check database readiness:
 
-```text
-http://localhost:8080/ready
+```bash
+docker compose -f compose.dev.yaml exec server node -e "fetch('http://localhost:8080/ready').then(r => console.log(r.status))"
 ```
 
 `/health` verifies that the server process is running. `/ready` also verifies
@@ -131,9 +124,6 @@ PostgreSQL connectivity and that the baseline schema is available.
 Run these from the repository root:
 
 ```bash
-pnpm dev:client
-pnpm dev:server
-pnpm migrate
 pnpm build
 pnpm lint
 pnpm test
@@ -159,4 +149,4 @@ pnpm format:check
 - Husky and `lint-staged` are configured at the workspace root
 - Frontend tests are present; the server test script is still a placeholder. Both are in process of a major rewrite.
 - Production server output is built into `server/dist/`
-- Run `pnpm migrate` against the production PostgreSQL database before starting a newly deployed server version.
+- Run `pnpm docker:migrate` against the production PostgreSQL database before starting a newly deployed server version.

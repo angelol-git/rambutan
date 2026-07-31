@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rambutan}
+      POSTGRES_USER: ${POSTGRES_USER:-rambutan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command:
+      - sh
+      - -c
+      - pnpm --filter server migrate && exec pnpm --filter server dev
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      CLIENT_URL: http://localhost:5173
+      DATABASE_URL: postgresql://${POSTGRES_USER:-rambutan}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-rambutan}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in .env}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?Set GOOGLE_CLIENT_SECRET in .env}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:?Set GOOGLE_API_KEY in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app/server
+      - server-node-modules:/app/server/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: pnpm --filter client dev --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+      VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in .env}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app/client
+      - client-node-modules:/app/client/node_modules
+    depends_on:
+      server:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  client-node-modules:
+  server-node-modules:

@@ -13,6 +13,13 @@
     "lint:client": "pnpm --dir client lint",
     "lint:server": "./client/node_modules/.bin/eslint ./server",
     "test": "pnpm -r test",
+    "docker:setup": "if [ ! -f .env ]; then cp .env.example .env && echo 'Created .env. Set its required values, then rerun: pnpm docker:setup'; else docker compose up --build -d && pnpm docker:migrate; fi",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:migrate": "docker compose run --rm server node dist/database/runMigrations.js",
+    "docker:dev": "if [ ! -f .env ]; then cp .env.example .env && echo 'Created .env. Set its required values, then rerun: pnpm docker:dev'; else docker compose -f compose.dev.yaml up --build; fi",
+    "docker:dev:down": "docker compose -f compose.dev.yaml down",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "prepare": "husky"
