@@ -12,6 +12,7 @@
     "lint": "pnpm lint:client && pnpm lint:server",
     "lint:client": "pnpm --dir client lint",
     "lint:server": "./client/node_modules/.bin/eslint ./server",
+    "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "docker:setup": "if [ ! -f .env ]; then cp .env.example .env && echo 'Created .env. Set its required values, then rerun: pnpm docker:setup'; else docker compose up --build -d && pnpm docker:migrate; fi",
     "docker:up": "docker compose up --build -d",

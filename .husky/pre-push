@@ -1,1 +1,2 @@
-pnpm --dir client test -- run
+pnpm --dir client test
+pnpm typecheck

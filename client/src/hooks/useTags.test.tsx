@@ -103,7 +103,7 @@ describe("useTags", () => {
         useTags(currentUser, [createRecipe("1", [dinnerTag])]),
       {
         initialProps: {
-          currentUser: null,
+          currentUser: null as User | null,
         },
         wrapper: createQueryClientWrapper().wrapper,
       },

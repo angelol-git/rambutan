@@ -19,6 +19,8 @@ export default defineConfig([
     "client/dist",
     "server/dist",
     "client/src/components/kitchen/RecipeEditorLegacy/**",
+    "server/scripts/benchmarkCreateTextOnly.js",
+    "server/scripts/benchmarkUrlParse.js",
   ]),
   {
     files: ["client/**/*.{js,jsx,ts,tsx}"],

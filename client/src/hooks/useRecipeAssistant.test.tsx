@@ -3,11 +3,36 @@ import { useRecipeAssistant } from "./useRecipeAssistant";
 import { submitRecipePrompt } from "../api/kitchen";
 import type { PaginatedRecipesResponse } from "../api/recipes";
 import { addLocalRecipe, addLocalRecipeVersion } from "../utils/storage";
-import type { Recipe } from "../types/recipe";
+import type {
+  Recipe,
+  RecipeIngredient,
+  RecipeInstruction,
+} from "../types/recipe";
 import { createQueryClientWrapper } from "../test/queryClient";
 
 const mockShowToast = vi.fn();
 const mockUseUser = vi.fn();
+const ingredient: RecipeIngredient = {
+  id: "ingredient-1",
+  position: 1,
+  raw_text: "ingredient-1",
+  completed: false,
+  ingredient_name: "ingredient-1",
+  quantity_value: null,
+  quantity_text: null,
+  unit: null,
+  alternate_quantity_value: null,
+  alternate_quantity_text: null,
+  alternate_unit: null,
+  note: null,
+  is_optional: false,
+};
+const instruction: RecipeInstruction = {
+  id: "instruction-1",
+  position: 1,
+  raw_text: "step-1",
+  completed: false,
+};
 
 vi.mock("../api/kitchen", () => ({
   submitRecipePrompt: vi.fn(),
@@ -41,14 +66,15 @@ function createRecipe({
       {
         id: versionId,
         description,
-        ingredients: ["ingredient-1"],
-        instructions: ["step-1"],
+        ingredients: [ingredient],
+        instructions: [instruction],
         recipeDetails: {
           calories: null,
           servings: 2,
           total_time: 20,
         },
-        source_prompt: "",
+        notes: "",
+        source: null,
       },
     ],
     created_at: null,
@@ -266,14 +292,21 @@ describe("useRecipeAssistant", () => {
         {
           id: "version-2",
           description: "Updated version",
-          ingredients: ["ingredient-1", "ingredient-2"],
-          instructions: ["step-1", "step-2"],
+          ingredients: [
+            ingredient,
+            { ...ingredient, id: "ingredient-2", position: 2 },
+          ],
+          instructions: [
+            instruction,
+            { ...instruction, id: "instruction-2", position: 2 },
+          ],
           recipeDetails: {
             calories: null,
             servings: 4,
             total_time: 30,
           },
-          source_prompt: "",
+          notes: "",
+          source: null,
         },
       ],
     };

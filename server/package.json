@@ -14,6 +14,7 @@
     "migrate": "tsx database/runMigrations.ts",
     "build": "tsc",
     "lint": "../client/node_modules/.bin/eslint .",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "prestart": "npm run build",
     "benchmark:create:text": "node scripts/benchmarkCreateTextOnly.js",
