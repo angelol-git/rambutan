@@ -3,7 +3,10 @@ import globals from "./client/node_modules/globals/index.js";
 import reactHooks from "./client/node_modules/eslint-plugin-react-hooks/index.js";
 import reactRefresh from "./client/node_modules/eslint-plugin-react-refresh/index.js";
 import tseslint from "./client/node_modules/typescript-eslint/dist/index.js";
-import { defineConfig, globalIgnores } from "./client/node_modules/eslint/lib/config-api.js";
+import {
+  defineConfig,
+  globalIgnores,
+} from "./client/node_modules/eslint/lib/config-api.js";
 
 const tsNoUnusedVarsRule = [
   "error",
