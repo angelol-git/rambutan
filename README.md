@@ -7,6 +7,8 @@
   <span>Rambutan</span>
 </h1>
 
+[Live site](https://myrambutan.app/)
+
 Recipe manager app for importing, organizing, editing, and generating recipes.
 
 ## Features
@@ -44,6 +46,8 @@ Recipe manager app for importing, organizing, editing, and generating recipes.
 Requirements:
 
 - Docker and Docker Compose
+- Node.js 22 or later
+- pnpm
 
 1. Clone the repository:
 
@@ -147,6 +151,6 @@ pnpm format:check
 ## Development Notes
 
 - Husky and `lint-staged` are configured at the workspace root
-- Frontend tests are present; the server test script is still a placeholder. Both are in process of a major rewrite.
+- Frontend tests are present; server tests have not been added yet.
 - Production server output is built into `server/dist/`
 - Run `pnpm docker:migrate` against the production PostgreSQL database before starting a newly deployed server version.
