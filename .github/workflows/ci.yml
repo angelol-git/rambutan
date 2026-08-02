@@ -46,3 +46,13 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Build client Docker image
+        run: |
+          docker build \
+            --file client/Dockerfile \
+            --build-arg VITE_GOOGLE_CLIENT_ID=ci-placeholder \
+            --tag rambutan-client:ci .
+
+      - name: Build server Docker image
+        run: docker build --file server/Dockerfile --tag rambutan-server:ci .
