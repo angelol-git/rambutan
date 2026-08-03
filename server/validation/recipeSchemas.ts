@@ -67,9 +67,8 @@ const recipeSourceSchema = z
 const updateRecipeMetadataPayloadSchema = z.object({
   title: z
     .string()
-    .min(1)
-    .max(150)
-    .transform((s) => s.trim()),
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1).max(150)),
 });
 
 const updateRecipeVersionPayloadSchema = z.object({

@@ -151,6 +151,4 @@ pnpm format:check
 ## Development Notes
 
 - Husky and `lint-staged` are configured at the workspace root
-- Frontend tests are present; server tests have not been added yet.
-- Production server output is built into `server/dist/`
 - Run `pnpm docker:migrate` against the production PostgreSQL database before starting a newly deployed server version.
