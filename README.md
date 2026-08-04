@@ -152,3 +152,32 @@ pnpm format:check
 
 - Husky and `lint-staged` are configured at the workspace root
 - Run `pnpm docker:migrate` against the production PostgreSQL database before starting a newly deployed server version.
+
+## Production Deployment
+
+Merges to `main` publish immutable client and server images to GitHub Container
+Registry, then deploy them to the VPS after CI succeeds. The deployment runs
+migrations, waits for `/ready`, and restores the previous application image if
+the readiness check fails.
+
+Before enabling the workflow, configure this GitHub environment or repository
+secrets:
+
+- `VITE_GOOGLE_CLIENT_ID` — the public Google OAuth client ID embedded in the client build
+- `DEPLOY_HOST` — VPS hostname or IP address
+- `DEPLOY_USER` — SSH user that can run Docker Compose
+- `DEPLOY_SSH_KEY` — private key for that user
+- `DEPLOY_KNOWN_HOSTS` — the VPS host-key entry from `ssh-keyscan -H <host>`
+- `DEPLOY_PATH` — absolute path to the existing production Compose directory
+
+The VPS deployment directory must contain the existing `compose.yaml` and its
+production `.env`. Docker must be able to pull the `ghcr.io/angelol-git`
+images; make the published packages public or authenticate Docker to GHCR on
+the VPS before the first deployment.
+
+The first release has no previous image tag to restore. After its first
+successful smoke check, the deploy script records the current tag in
+`.deployment/current-image-tag`, allowing later failed deployments to roll back
+the application containers automatically. Database migrations are intentionally
+not rolled back; production migrations should remain backward-compatible with
+the prior application release.

@@ -56,3 +56,102 @@ jobs:
 
       - name: Build server Docker image
         run: docker build --file server/Dockerfile --tag rambutan-server:ci .
+
+  integration:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: rambutan_test
+          POSTGRES_USER: rambutan
+          POSTGRES_PASSWORD: test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rambutan -d rambutan_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://rambutan:test-password@localhost:5432/rambutan_test
+      PORT: 8080
+      CLIENT_URL: http://localhost:3000
+      GOOGLE_CLIENT_ID: test-client-id
+      GOOGLE_CLIENT_SECRET: test-client-secret
+      GOOGLE_API_KEY: test-api-key
+      SESSION_SECRET: test-session-secret
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --dir server build
+
+      - name: Apply database migrations
+        run: pnpm --dir server migrate
+
+      - name: Seed an authenticated user and recipe
+        run: |
+          psql "$DATABASE_URL" --set ON_ERROR_STOP=on <<'SQL'
+          INSERT INTO users (id, external_id, email)
+          VALUES ('00000000-0000-4000-8000-000000000001', 'ci-user', 'ci@example.com');
+
+          INSERT INTO sessions (sid, user_id, expires_at)
+          VALUES (
+            '00000000-0000-4000-8000-000000000002',
+            '00000000-0000-4000-8000-000000000001',
+            NOW() + INTERVAL '1 day'
+          );
+
+          INSERT INTO recipes (id, user_id, title)
+          VALUES (
+            '00000000-0000-4000-8000-000000000003',
+            '00000000-0000-4000-8000-000000000001',
+            'CI Recipe'
+          );
+          SQL
+
+      - name: Start server
+        run: node server/dist/server.js > server.log 2>&1 &
+
+      - name: Verify database readiness and authenticated API flows
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent --show-error http://localhost:8080/ready; then
+              break
+            fi
+            if [ "$attempt" -eq 20 ]; then
+              cat server.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl --fail --silent --show-error \
+            --cookie 'sid=00000000-0000-4000-8000-000000000002' \
+            http://localhost:8080/api/auth/check | jq -e '.authenticated == true' > /dev/null
+
+          curl --fail --silent --show-error \
+            --cookie 'sid=00000000-0000-4000-8000-000000000002' \
+            http://localhost:8080/api/recipes | jq -e \
+            '.totalItems == 1 and .items[0].title == "CI Recipe"' > /dev/null

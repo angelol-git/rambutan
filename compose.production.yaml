@@ -1,0 +1,6 @@
+services:
+  server:
+    image: ghcr.io/angelol-git/rambutan-server:${IMAGE_TAG:?Set IMAGE_TAG for production deployments}
+
+  client:
+    image: ghcr.io/angelol-git/rambutan-client:${IMAGE_TAG:?Set IMAGE_TAG for production deployments}
