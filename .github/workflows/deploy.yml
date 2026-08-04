@@ -70,7 +70,8 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          scp compose.production.yaml scripts/deploy-production.sh \
+          scp -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            compose.production.yaml scripts/deploy-production.sh \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Deploy and verify production release
@@ -79,5 +80,6 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
             "cd '$DEPLOY_PATH' && chmod +x deploy-production.sh && ./deploy-production.sh '${{ github.event.workflow_run.head_sha }}'"
